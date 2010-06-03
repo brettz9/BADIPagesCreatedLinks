@@ -1,3 +1,19 @@
+(This extension is dedicated to our Baha'i friends in Iran who, without 
+responding in kind, but on the contrary, who persevere in demonstrating their
+loyalty and services to their communities and country, despite the
+government-sponsored persecution so insidiously leagued against them 
+(including a denial of education itself! not to mention jobs, pensions, 
+and businesses and other abuses or harrassment, even of poor school children). 
+No doubt Iran as a whole will return to its prior glories as soon as it 
+stops its patently false propaganda, trumped up charges and imprisonments,
+and becomes concerned with elevating the status of all of its citizens, 
+whether women, ethnic minorities, or Baha'is (the largest independent 
+religious minority in the country). Civilized countries do not come anywhere
+close to doing things like denying education to its own citizens, citizens 
+who are moreover loyal to its authority! Is there any excuse for such 
+backwards behavior? Iran no doubt has yet greater contributions to 
+make to civilization, if it will only be truly enabled to do so.)
+
 The BADI Pages Created Links extension for Mediawiki allows display of links 
 in one's Mediawiki toolbox area which lead to other wiki or wiki-like sites 
 whereby links will be colored differently depending on whether the page there 
