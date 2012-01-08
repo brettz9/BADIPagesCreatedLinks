@@ -30,10 +30,11 @@ catbacks (see 3b below) with options to:
         to create the link where relevant.
     d) decide, if control is made through admin specification, whether to make live checks for content
         on sites which are not sending their own automated linkbacks (e.g., catbacks) via 
-        Last-Modified or HTTP 200 HTTP HEAD requests. This is less efficient as it requires a request
-        for each visit (unless caching is enabled which may mean the wiki is out of date in the case
-        of since deleted pages). This can be configured to be sent via JavaScript (in which case the
-        user's machine sends the request to a cross-domain API) or by the server.
+        Last-Modified or HTTP 200 HTTP HEAD requests. This is less efficient and can slow down 
+        both your server (and/or the user client) as well as the targeted external server as it 
+        requires a request for each visit (unless caching is enabled which may mean the wiki is out 
+        of date in the case of since deleted pages). This can be configured to be sent via 
+        JavaScript (in which case the user's machine sends the request to a cross-domain API) or by the server.
     e) restrict by domain whitelist or blacklist
     f) restrict by whether the links originate with a "nofollow" (or "rel"?) attribute or not
 2) Generation of pingbacks, trackbacks and/or refbacks (the latter by visiting the site), with options to:
