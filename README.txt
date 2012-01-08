@@ -14,21 +14,44 @@ who are moreover loyal to its authority! Is there any excuse for such
 backwards behavior? Iran no doubt has yet greater contributions to 
 make to civilization, if it will only be truly enabled to do so.)
 
-The BADI Pages Created Links extension for Mediawiki allows display of links 
-in one's Mediawiki toolbox area which lead to other wiki or wiki-like sites 
-whereby links will be colored differently depending on whether the page there 
-has been created yet or not. The status of whether it was created yet or not
-is determined by Last-Modified or HTTP 200 HTTP HEAD requests.
+**************************************************************************
+NOTE: THE FOLLOWING FEATURES ARE ONLY BEING DESCRIBED HERE TO DOCUMENT
+THE INTENDED FEATURES; THESE FEATURES HAVE NOT YET BEEN IMPLEMENTED YET!!!
+**************************************************************************
 
-It would be great to see track-backs for wikis too, whereby blogs and forum 
-content could be displayed inside wikis if this hasn't been devised yet 
-already (maybe a future goal?), but this extension allows one to specify 
-a predefined set of specific sites to which to link.
+The BADI Pages Created Links extension for Mediawiki allows:
 
-(If open forum software like phpbb.com will allow users to create any level 
-of nested subforums (currently only the admins can do this I believe), we 
-could also allow one to link to a specific discussion forum according to 
-whether the forum of the same name had been started yet.)
+1) Receipt and display of pingbacks, trackbacks, refbacks, and a new linkback we will call 
+catbacks (see 3b below) with options to:
+    a) decide whether these backlinks will appear inline and/or via the "What Links Here" page
+    b) decide whether the display is controllable from within wiki code or only via admin specification. 
+    c) decide, if control is made through admin specification, whether to show orange links, which
+        indicate that the page has not yet been created, but one may visit that site (wiki or discussion) 
+        to create the link where relevant.
+    d) decide, if control is made through admin specification, whether to make live checks for content
+        on sites which are not sending their own automated linkbacks (e.g., catbacks) via 
+        Last-Modified or HTTP 200 HTTP HEAD requests. This is less efficient as it requires a request
+        for each visit (unless caching is enabled which may mean the wiki is out of date in the case
+        of since deleted pages). This can be configured to be sent via JavaScript (in which case the
+        user's machine sends the request to a cross-domain API) or by the server.
+    e) restrict by domain whitelist or blacklist
+    f) restrict by whether the links originate with a "nofollow" (or "rel"?) attribute or not
+2) Generation of pingbacks, trackbacks and/or refbacks (the latter by visiting the site), with options to:
+    a) decide whether the generation of links can be made within wiki code or only via admin specification
+    b) restrict by domain whitelist or blacklist
+    c) generate pingbacks, trackbacks, and refbacks to be triggered according to the preexisting links within
+    the database and/or to run after each new page edit
+3) Expansion of the pingback/trackback protocols, by allowing:
+    a) an automatic command to indicate deletion of an entry (since the wiki inclusion of links 
+    may fluctuate more than the blogs for which pingback was designed)
+    b) an automatic admin-controlled command to indicate that a page is dedicated to the same 
+    topic (and is not just referencing the wiki article). This is particularly suitable 
+    for pinging other wikis, blogs, or discussion forums covering the same scope of topics, 
+    whether for their articles or category pages (It is hoped that some discussion forums 
+    (or wikis) might allow the unalterable stream of a discussion that discussion forums 
+    allow with the ability for users to freely add and edit not only threads but also 
+    categories and an infinite nesting of subcategories.)
+
 
 To use this extension, simply put the BADIPagesCreatedLinks folder containing
 our extension code inside your wiki's /extensions folder and include this 
