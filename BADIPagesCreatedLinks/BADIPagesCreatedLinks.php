@@ -18,13 +18,6 @@ $wgExtensionCredits['other'][] = array(
 	'author' => "BADI: Bahá'í/Badí Developers Institute (Brett Zamir)", // The extension author's name - string
 	'url' => 'http://groups.yahoo.com/group/badi', // URL of extension (usually instructions) - string
 );
-
-// HOOK
-// Add hook for our link adder (this is the portion that allows us to hook into Mediawiki without modifying its source code)
-$wgHooks['SkinTemplateToolboxEnd'][] = 'badi_addPageCreatedLinks'; // Defined below
-// $wgExtensionFunctions[] = 'ef_BADIPagesCreatedLinksSetup'; // Delays execution of a named function until after setup
-
-
 // Load I18N
 $wgExtensionMessagesFiles['BADIPagesCreatedLinks'] = dirname( __FILE__ ) . '/BADIPagesCreatedLinks.i18n.php';
 
@@ -38,10 +31,14 @@ $wgBADIConfig['external_intro'] = array();
 
 
 
-
 //// START DEFAULT CONFIGURATION /////
 // Although any of the following can (and probably should) be overridden in your LocalSettings.php, they should be
 //   kept here in order to function as default values
+
+
+// WHICH COMPONENTS TO ENABLE
+$wgBADIConfig['Enabled_SkinTemplateToolboxEnd'] = true; // 
+
 
 // LOCALIZATION AND SITE LINKS AND TITLES
 
@@ -106,6 +103,13 @@ $wgBADIConfig['uncreatedLinkInlineStyles'] = ''; // e.g., 'font-style:italic';
 //// END CONFIGURATION /////
 
 
+// HOOK
+// Add hook for our link adder (this is the portion that allows us to hook into Mediawiki without modifying its source code)
+$wgHooks['SkinTemplateToolboxEnd'][] = 'badi_addPageCreatedLinks'; // Defined below
+
+// $wgExtensionFunctions[] = 'ef_BADIPagesCreatedLinksSetup'; // Delays execution of a named function until after setup
+
+
 
 // PROBLEMS IF PUT THESE IN BODY
 /*
@@ -148,11 +152,13 @@ function badi_getCreatedStateForSite ($url) {
  * @param {Object} $this Passed by Mediawiki (required)
  */
 function badi_addPageCreatedLinks ($out) {
-
     // GET LOCALE MESSAGES
     wfLoadExtensionMessages('BADIPagesCreatedLinks');
 
     global $wgRequest, $wgLanguageCode, $wgBADIConfig;
+    if (!$wgBADIConfig['Enabled_SkinTemplateToolboxEnd']) { // Give chance to LocalSettings to cause exit
+        return false;
+    }
 
     $currentPageTitle = $wgRequest->getText('title');
 

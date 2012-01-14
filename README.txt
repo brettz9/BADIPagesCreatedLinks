@@ -1,23 +1,11 @@
-(This extension is dedicated to our Baha'i friends in Iran who, without 
-responding in kind, but on the contrary, who persevere in demonstrating their
-loyalty and services to their communities and country, despite the
-government-sponsored persecution so insidiously leagued against them 
-(including a denial of education itself! not to mention jobs, pensions, 
-and businesses and other abuses or harrassment, even of poor school children). 
-No doubt Iran as a whole will return to its prior glories as soon as it 
-stops its patently false propaganda, trumped up charges and imprisonments,
-and becomes concerned with elevating the status of all of its citizens, 
-whether women, ethnic minorities, or Baha'is (the largest independent 
-religious minority in the country). Civilized countries do not come anywhere
-close to doing things like denying education to its own citizens, citizens 
-who are moreover loyal to its authority! Is there any excuse for such 
-backwards behavior? Iran no doubt has yet greater contributions to 
-make to civilization, if it will only be truly enabled to do so.)
+<?php
 
 **************************************************************************
 NOTE: THE FOLLOWING FEATURES ARE ONLY BEING DESCRIBED HERE TO DOCUMENT
 THE INTENDED FEATURES; THESE FEATURES HAVE NOT YET BEEN IMPLEMENTED YET!!!
 **************************************************************************
+
+==INTRODUCTION===
 
 The BADI Pages Created Links extension for Mediawiki allows:
 
@@ -27,21 +15,22 @@ catbacks (see 3b below) with options to:
     b) decide whether the display is controllable from within wiki code or only via admin specification. 
     c) decide, if control is made through admin specification, whether to show orange links, which
         indicate that the page has not yet been created, but one may visit that site (wiki or discussion) 
-        to create the link where relevant.
+        to create the link where relevant. Use a regexp or like for transforming to Edit Wiki link.
     d) decide, if control is made through admin specification, whether to make live checks for content
         on sites which are not sending their own automated linkbacks (e.g., catbacks) via 
         Last-Modified or HTTP 200 HTTP HEAD requests. This is less efficient and can slow down 
         both your server (and/or the user client) as well as the targeted external server as it 
-        requires a request for each visit (unless caching is enabled which may mean the wiki is out 
-        of date in the case of since deleted pages). This can be configured to be sent via 
+        requires a request for each visit (unless caching/polling Allpages/RSS/API is enabled which 
+        may mean the wiki is out of date in the case of since deleted pages or if notifications enabled
+        whereby trusted source subscribes to new notices). This can be configured to be sent via 
         JavaScript (in which case the user's machine sends the request to a cross-domain API) or by the server.
     e) restrict by domain whitelist or blacklist
     f) restrict by whether the links originate with a "nofollow" (or "rel"?) attribute or not
-2) Generation of pingbacks, trackbacks and/or refbacks (the latter by visiting the site), with options to:
+2) Generation of pingbacks, trackbacks and/or refbacks (the latter by ensuring the site gets visited), with options to:
     a) decide whether the generation of links can be made within wiki code or only via admin specification
     b) restrict by domain whitelist or blacklist
     c) generate pingbacks, trackbacks, and refbacks to be triggered according to the preexisting links within
-    the database and/or to run after each new page edit
+        the database (compared against Allpages on the other site) and/or to run after each new page edit
 3) Expansion of the pingback/trackback protocols, by allowing:
     a) an automatic command to indicate deletion of an entry (since the wiki inclusion of links 
     may fluctuate more than the blogs for which pingback was designed)
@@ -52,7 +41,9 @@ catbacks (see 3b below) with options to:
     (or wikis) might allow the unalterable stream of a discussion that discussion forums 
     allow with the ability for users to freely add and edit not only threads but also 
     categories and an infinite nesting of subcategories.)
+    c) means to systematically indicate appropriate direct Edit page if page not yet created?
 
+==USAGE==
 
 To use this extension, simply put the BADIPagesCreatedLinks folder containing
 our extension code inside your wiki's /extensions folder and include this 
@@ -174,6 +165,25 @@ If you don't want links to appear while the user is in other namespaces, you can
     $wgBADIConfig['no_namespaces'] = true;
 
 As evident above, most of the configuration will be provided by the user, but our extension does support default values if one only wishes to link  to Wikipedia. This information as well as extension credits could be translated inside BADIPagesCreatedLinks.i18n.php (feel free to let us know if you write any localizations and we may include them).
+
+
+==DEDICATION==
+
+(This extension is dedicated to our Baha'i friends in Iran who, without 
+responding in kind, but on the contrary, who persevere in demonstrating their
+loyalty and services to their communities and country, despite the
+government-sponsored persecution so insidiously leagued against them 
+(including a denial of education itself! not to mention jobs, pensions, 
+and businesses and other abuses or harrassment, even of poor school children). 
+No doubt Iran as a whole will return to its prior glories as soon as it 
+stops its patently false propaganda, trumped up charges and imprisonments,
+and becomes concerned with elevating the status of all of its citizens, 
+whether women, ethnic minorities, or Baha'is (the largest independent 
+religious minority in the country). Civilized countries do not come anywhere
+close to doing things like denying education to its own citizens, citizens 
+who are moreover loyal to its authority! Is there any excuse for such 
+backwards behavior? Iran no doubt has yet greater contributions to 
+make to civilization, if it will only be truly enabled to do so.)
 
 Warmest regards!
 BADI Developer Institute
