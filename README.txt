@@ -42,6 +42,8 @@ catbacks (see 3b below) with options to:
     allow with the ability for users to freely add and edit not only threads but also 
     categories and an infinite nesting of subcategories.)
     c) means to systematically indicate appropriate direct Edit page if page not yet created?
+4) Possibility to allow third-party links and linkbases without verification (lower trust level, but
+    could add some useful content, especially if joined with whitelists)
 
 ==USAGE==
 
