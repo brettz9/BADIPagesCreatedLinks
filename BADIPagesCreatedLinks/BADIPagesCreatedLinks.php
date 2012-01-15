@@ -11,8 +11,8 @@ $wgExtensionCredits['other'][] = array(
 	'path' => __FILE__, // File name for the extension itself, required for getting the revision number from SVN - string, adding in 1.15
 	'name' => 'BADI Pages Created Links', // Name of extension - string
 	'description' => 'Allows display of links in toolbox to other wiki or wiki-like sites whereby links will be colored differently '.
-                                    'depending on whether the page there has been created yet or not. Status determined by '.
-                                    'response code or Last-Modified HTTP HEAD requests.', // Description of what the extension does - string
+                    'depending on whether the page there has been created yet or not. Status determined by '.
+                    'response code or Last-Modified HTTP HEAD requests.', // Description of what the extension does - string
 	'descriptionmsg' => 'badi-created-pages-desc', // Same as above but name of a message, for i18n - string, added in 1.12.0
 	'version' => 0.1, // Version number of extension - number or string
 	'author' => "BADI: Bahá'í/Badí Developers Institute (Brett Zamir)", // The extension author's name - string
@@ -24,23 +24,18 @@ $wgExtensionMessagesFiles['BADIPagesCreatedLinks'] = dirname( __FILE__ ) . '/BAD
 
 // BADI PAGE CREATED EXTENSION SETUP (do not change)
 
-$BADIConfig = array();
-$BADIConfig['sites'] = array();
-$BADIConfig['titles'] = array();
-$BADIConfig['external_intro'] = array();
-
-
+$BADIConfig = array(
+    'sites' => array(),
+    'titles' => array(),
+    'external_intro' => array()
+);
 
 //// START DEFAULT CONFIGURATION /////
 // Although any of the following can (and probably should) be overridden in your LocalSettings.php, they should be
 //   kept here in order to function as default values
 
-
 // WHICH COMPONENTS TO ENABLE
 $BADIConfig['Enabled_SkinTemplateToolboxEnd'] = true; // 
-
-
-    
 
 
 // LOCALIZATION AND SITE LINKS AND TITLES
@@ -115,7 +110,7 @@ $BADIConfig['User_content_linkbacks'] = array(
     'whitelist' => array(),
     'blacklist' => array()
 );
-
+    
 // Sends info when pages are created or deleted (or sends all pages if option enabled, if never sent before to that site, and if target site agrees or requests (confirm first that request is valid before notifying))
 $BADIConfig['Toolbox_linkbacks'] = array( // This is for admin-specified sites; can be separate toolbox for showing incoming linkbacks
     'check_preexisting_pages' => true,
@@ -144,12 +139,27 @@ class BADI_PagesCreatedLinks {
     }
     private function hook_setup () {
         global $wgHooks, $wgExtensionFunctions;
+        $contentLinkbackConfig = $this->config['User_content_linkbacks'];
+        $toolboxLinkbackConfig = $this->config['Toolbox_linkbacks'];
+        
         // HOOK SETUP
         // Add hook for our link adder (this is the portion that allows us to hook into Mediawiki without modifying its source code)
-        $wgHooks['SkinTemplateToolboxEnd'][] = array(&$this, 'addPageCreatedLinks'); // Defined below
-        $wgHooks['LinksUpdate'][] = array(&$this, 'live_user_content_pingback'); // Defined below
-        $wgHooks['ArticleSaveComplete'][] = array(&$this, 'article_save_complete'); // Defined below
+        $wgHooks['SkinTemplateToolboxEnd'][] = array(&$this, 'addPageCreatedLinks'); // Defined as method below
         // $wgExtensionFunctions[] = 'ef_BADIPagesCreatedLinksSetup'; // Delays execution of a named function until after setup
+        
+        if ($contentLinkbackConfig && $contentLinkbackConfig['live_enabled']) {
+            $wgHooks['LinksUpdate'][] = array(&$this, 'live_user_content_pingback'); // Defined as method below
+            $wgHooks['ArticleSaveComplete'][] = array(&$this, 'article_save_complete'); // Defined as method below
+        }
+        if ($toolboxLinkbackConfig && $toolboxLinkbackConfig['live_enabled']) {
+        // Check $config['Toolbox_linkbacks']
+            $wgHooks['ArticleInsertComplete'][] = array(&$this, 'article_insert_complete'); // Defined as method below
+            $wgHooks['ArticleDeleteComplete'][] = array(&$this, 'article_delete_complete'); // Defined as method below        
+        }
+    }
+    public function article_insert_complete () {
+    }
+    public function article_delete_complete () {
     }
     // PROBLEMS IF PUT THESE IN BODY
     /**
@@ -300,26 +310,6 @@ class BADI_PagesCreatedLinks {
     // GENERATION OF PINGBACKS (user and admin) AND DELETEBACKS?
     // 1) NEW: Parse links and submit if new, and send delete if old
 
-    /*
-    // Sends info when pages are edited with new links added or old links removed (or send all links if option enabled, if never sent before
-    $this->config['User_content_linkbacks'] = array(
-        "check_preexisting_links"=>true,
-        "live_enabled"=>true,
-        "types"=>array("pingback", "trackback", "refback", "deleteback"),
-        "whitelist"=>array(),
-        "blacklist"=>array()
-    );
-
-    // Hook: ArticleInsertComplete, ArticleDeleteComplete
-    // Sends info when pages are created or deleted (or sends all pages if option enabled, if never sent before to that site, and if target site agrees or requests (confirm first that request is valid before notifying))
-    $this->config['Toolbox_linkbacks'] = array( // This is for admin-specified sites; can be separate toolbox for showing incoming linkbacks
-        "check_preexisting_pages"=>true,
-        "live_enabled"=>true,
-        "types"=>array("pingback", "trackback", "refback", "deleteback", "catback"), // Main use here would probably be catback
-        "sites"=>array(),
-        "site_regexps"=>array()
-    );
-    */
 
     /** Helper function
     * We could wait for a response and reshape external link to show error (though also needs to be available to all users)
@@ -380,16 +370,13 @@ class BADI_PagesCreatedLinks {
     public function live_user_content_pingback ($out) {
         // SETUP
         global $wgHooks;
-        $linkbackConfig = $this->config['User_content_linkbacks'];
-        if (!$linkbackConfig || !$linkbackConfig['live_enabled']) {    
-            return false;
-        }
+        $contentLinkbackConfig = $this->config['User_content_linkbacks'];
         $existing = $out->getExistingExternals();
 
         /*
         $types = array('pingback', 'trackback', 'refback');
         foreach ($types as $type) {
-            if (!in_array($type, $linkbackConfig['types'])) {
+            if (!in_array($type, $contentLinkbackConfig['types'])) {
                 return false;
             }
             call_user_func(array(&$this, 'handler_'.$type), $out);
@@ -407,16 +394,16 @@ class BADI_PagesCreatedLinks {
         $this->inserts = $inserts = array_diff_key( $out->mExternals, $existing ); // using keys for URL
         $this->deletes = $deletes = array_diff_key( $existing, $out->mExternals ); // using keys for URL
         
-        if (in_array('refback', $linkbackConfig['types'])) {
-            if (!$linkbackConfig['whitelist'] || 
-                !$linkbackConfig['blacklist']) {
+        if (in_array('refback', $contentLinkbackConfig['types'])) {
+            if (!$contentLinkbackConfig['whitelist'] || 
+                !$contentLinkbackConfig['blacklist']) {
                 return false; // Useless if no whitelist or blacklist
             }
             foreach ($inserts as $inserted => $ignore) {
-                if ($linkbackConfig['whitelist']) {
+                if ($contentLinkbackConfig['whitelist']) {
                     if (in_array(
                         parse_url($inserted, PHP_URL_HOST), 
-                        $linkbackConfig['whitelist']
+                        $contentLinkbackConfig['whitelist']
                         )
                     ) {
                         $this->process_refback($inserted, $currentPage);
@@ -425,7 +412,7 @@ class BADI_PagesCreatedLinks {
                 }
                 elseif (!in_array(
                         parse_url($inserted, PHP_URL_HOST), 
-                        $linkbackConfig['blacklist']
+                        $contentLinkbackConfig['blacklist']
                 ) {
                     $this->process_refback($inserted, $currentPage);
                 }
