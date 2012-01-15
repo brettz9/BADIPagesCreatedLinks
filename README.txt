@@ -9,21 +9,27 @@ THE INTENDED FEATURES; THESE FEATURES HAVE NOT YET BEEN IMPLEMENTED YET!!!
 
 The BADI Pages Created Links extension for Mediawiki allows:
 
-1) Receipt and display of pingbacks, trackbacks, refbacks, and a new linkback we will call 
-catbacks (see 3b below) with options to:
-    a) decide whether these backlinks will appear inline and/or via the "What Links Here" page
-    b) decide whether the display is controllable from within wiki code or only via admin specification. 
-    c) decide, if control is made through admin specification, whether to show orange links, which
-        indicate that the page has not yet been created, but one may visit that site (wiki or discussion) 
-        to create the link where relevant. Use a regexp or like for transforming to Edit Wiki link.
-    d) decide, if control is made through admin specification, whether to make live checks for content
-        on sites which are not sending their own automated linkbacks (e.g., catbacks) via 
-        Last-Modified or HTTP 200 HTTP HEAD requests. This is less efficient and can slow down 
-        both your server (and/or the user client) as well as the targeted external server as it 
-        requires a request for each visit (unless caching/polling Allpages/RSS/API is enabled which 
-        may mean the wiki is out of date in the case of since deleted pages or if notifications enabled
-        whereby trusted source subscribes to new notices). This can be configured to be sent via 
-        JavaScript (in which case the user's machine sends the request to a cross-domain API) or by the server.
+1) Receipt and display of pingbacks, trackbacks, refbacks, and a new linkback 
+we will call catbacks (see 3b below) with options to:
+    a) decide whether these backlinks will appear inline and/or via the 
+        "What Links Here" page
+    b) decide whether the display is controllable from within wiki code or 
+        only via admin specification. 
+    c) decide, if control is made through admin specification, whether to show
+        orange links, which indicate that the page has not yet been created, 
+        but one may visit that site (wiki or discussion) to create the link 
+        where relevant. Use a regexp or like for transforming to Edit Wiki link.
+    d) decide, if control is made through admin specification, whether to make
+        live checks for content on sites which are not sending their own 
+        automated linkbacks (e.g., catbacks) via Last-Modified or 
+        HTTP 200 HTTP HEAD requests. This is less efficient and can slow down 
+        both your server (and/or the user client) as well as the targeted 
+        external server as it requires a request for each visit (unless 
+        caching/polling Allpages/RSS/API is enabled which may mean the wiki 
+        is out of date in the case of since deleted pages or if notifications 
+        enabled whereby trusted source subscribes to new notices). This can be
+        configured to be sent via JavaScript (in which case the user's machine
+        sends the request to a cross-domain API) or by the server.
     e) restrict by domain whitelist or blacklist
     f) restrict by whether the links originate with a "nofollow" (or "rel"?) attribute or not
 2) Generation of pingbacks, trackbacks and/or refbacks (the latter by ensuring the site gets visited), with options to:
@@ -44,6 +50,14 @@ catbacks (see 3b below) with options to:
     c) means to systematically indicate appropriate direct Edit page if page not yet created?
 4) Possibility to allow third-party links and linkbases without verification (lower trust level, but
     could add some useful content, especially if joined with whitelists)
+5) Rather than being dependent on gaining remote SQL access to another server 
+    (and needing permissions), or requiring some kind of formal API, using a 
+    HEAD request can allow a simple but effective way to know whether a 
+    specific page on another wiki site has been created already or not, and 
+    display this information to your users. However, it can add numerous
+    unnecessary requests, so the extension aims to offer other means and
+    allowing this as a last resort.
+
 
 ==USAGE==
 
@@ -162,11 +176,16 @@ will be replaced by the current wiki page's title:
 
 $wgBADIConfig['site_editing_templates'] = '{{SITE_EDITING}}{{CURRENT_PAGE_TITLE}}&action=edit';
 
-If you don't want links to appear while the user is in other namespaces, you can set this setting:
+If you don't want links to appear while the user is in other namespaces, 
+you can set this setting:
 
     $wgBADIConfig['no_namespaces'] = true;
 
-As evident above, most of the configuration will be provided by the user, but our extension does support default values if one only wishes to link  to Wikipedia. This information as well as extension credits could be translated inside BADIPagesCreatedLinks.i18n.php (feel free to let us know if you write any localizations and we may include them).
+As evident above, most of the configuration will be provided by the user, but 
+our extension does support default values if one only wishes to link to 
+Wikipedia. This information as well as extension credits could be translated 
+inside BADIPagesCreatedLinks.i18n.php (feel free to let us know if you write 
+any localizations and we may include them).
 
 
 ==DEDICATION==

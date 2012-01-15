@@ -1,29 +1,6 @@
 <?php
 
-// Rather than being dependent on gaining remote SQL access to another server (and needing permissions),
-// or requiring some kind of formal API, using a HEAD request can allow a simple but effective way to know whether a
-// a specific page on another wiki site has been created already or not, and display this information to your users
-
-// SPECIAL:VERSION
-// Information to display on Special:Version, as it is best practice to display information of all extensions installed
-//  in this manner
-$wgExtensionCredits['other'][] = array(
-	'path' => __FILE__, // File name for the extension itself, required for getting the revision number from SVN - string, adding in 1.15
-	'name' => 'BADI Pages Created Links', // Name of extension - string
-	'description' => 'Allows display of links in toolbox to other wiki or wiki-like sites whereby links will be colored differently '.
-                    'depending on whether the page there has been created yet or not. Status determined by '.
-                    'response code or Last-Modified HTTP HEAD requests.', // Description of what the extension does - string
-	'descriptionmsg' => 'badi-created-pages-desc', // Same as above but name of a message, for i18n - string, added in 1.12.0
-	'version' => 0.1, // Version number of extension - number or string
-	'author' => "BADI: Bahá'í/Badí Developers Institute (Brett Zamir)", // The extension author's name - string
-	'url' => 'http://groups.yahoo.com/group/badi', // URL of extension (usually instructions) - string
-);
-// Load I18N
-$wgExtensionMessagesFiles['BADIPagesCreatedLinks'] = dirname( __FILE__ ) . '/BADIPagesCreatedLinks.i18n.php';
-
-
 // BADI PAGE CREATED EXTENSION SETUP (do not change)
-
 $BADIConfig = array(
     'pages_created_links' => array(
         'sites' => array(),
@@ -31,17 +8,35 @@ $BADIConfig = array(
         'external_intro' => array()
     )
 );
-
-// Make our lives a little easier
+// Make our lives a little easier (used below)
 $BADIConfig_PCL = &$BADIConfig['pages_created_links'];
+
 
 //// START DEFAULT CONFIGURATION /////
 // Although any of the following can (and probably should) be overridden in your LocalSettings.php, they should be
 //   kept here in order to function as default values
 
+// Note: Whitelists are given precedence if present
+// Sends info when pages are edited with new links added or old links removed (or send all links if option enabled, if never sent before
+$BADIConfig['User_content_linkbacks'] = array(
+    'check_preexisting_links' => true,
+    'live_enabled' => true,
+    'types' => array('pingback', 'trackback', 'refback', 'deleteback'),
+    'whitelist' => array(),
+    'blacklist' => array()
+);
+
+// Sends info when pages are created or deleted (or sends all pages if option enabled, if never sent before to that site, and if target site agrees or requests (confirm first that request is valid before notifying))
+$BADIConfig['Toolbox_linkbacks'] = array( // This is for admin-specified sites; can be separate toolbox for showing incoming linkbacks
+    'check_preexisting_pages' => true,
+    'live_enabled' => true,
+    'types' => array('pingback', 'trackback', 'refback', 'deleteback', 'catback'), // Main use here would probably be catback
+    'sites' => array(),
+    'site_regexps' => array()
+);
+
 // WHICH COMPONENTS TO ENABLE
 $BADIConfig_PCL['Enabled_SkinTemplateToolboxEnd'] = true;
-
 
 // LOCALIZATION AND SITE LINKS AND TITLES
 
@@ -106,29 +101,9 @@ $BADIConfig_PCL['uncreatedLinkInlineStyles'] = ''; // e.g., 'font-style:italic';
 //// END CONFIGURATION /////
 
 
-// Note: Whitelists are given precedence if present
-// Sends info when pages are edited with new links added or old links removed (or send all links if option enabled, if never sent before
-$BADIConfig['User_content_linkbacks'] = array(
-    'check_preexisting_links' => true,
-    'live_enabled' => true,
-    'types' => array('pingback', 'trackback', 'refback', 'deleteback'),
-    'whitelist' => array(),
-    'blacklist' => array()
-);
 
-// Sends info when pages are created or deleted (or sends all pages if option enabled, if never sent before to that site, and if target site agrees or requests (confirm first that request is valid before notifying))
-$BADIConfig['Toolbox_linkbacks'] = array( // This is for admin-specified sites; can be separate toolbox for showing incoming linkbacks
-    'check_preexisting_pages' => true,
-    'live_enabled' => true,
-    'types' => array('pingback', 'trackback', 'refback', 'deleteback', 'catback'), // Main use here would probably be catback
-    'sites' => array(),
-    'site_regexps' => array()
-);
-
-
+// START IT UP
 $BADI = new BADI_PagesCreatedLinks($BADIConfig);
-
-
 
 class BADI_PagesCreatedLinks {
     protected $config;
@@ -136,14 +111,36 @@ class BADI_PagesCreatedLinks {
     private $deletes;
 
     public function __construct ($config) {
+        // Load I18N
+        global $wgExtensionMessagesFiles;
+        $wgExtensionMessagesFiles['BADIPagesCreatedLinks'] = dirname( __FILE__ ) . '/BADIPagesCreatedLinks.i18n.php'
+
         $this->config = $config;
         $this->pclConfig = &$this->config['pages_created_links'];
 
+        $this->extension_credits();
         $this->hook_setup();
 
         if ($config['User_content_linkbacks']['check_preexisting_links']) {
 
         }
+    }
+    private function extension_credits () {
+        global $wgExtensionCredits;
+        // SPECIAL:VERSION
+        // Information to display on Special:Version, as it is best practice to display information of all extensions installed
+        //  in this manner
+        $wgExtensionCredits['other'][] = array(
+            'path' => __FILE__, // File name for the extension itself, required for getting the revision number from SVN - string, adding in 1.15
+            'name' => 'BADI Pages Created Links', // Name of extension - string
+            'description' => 'Allows display of links in toolbox to other wiki or wiki-like sites whereby links will be colored differently '.
+                            'depending on whether the page there has been created yet or not. Status determined by '.
+                            'response code or Last-Modified HTTP HEAD requests.', // Description of what the extension does - string
+            'descriptionmsg' => 'badi-created-pages-desc', // Same as above but name of a message, for i18n - string, added in 1.12.0
+            'version' => 0.1, // Version number of extension - number or string
+            'author' => "BADI: Bahá'í/Badí Developers Institute (Brett Zamir)", // The extension author's name - string
+            'url' => 'http://groups.yahoo.com/group/badi', // URL of extension (usually instructions) - string
+        );
     }
     private function hook_setup () {
         global $wgHooks, $wgExtensionFunctions;
@@ -332,7 +329,7 @@ class BADI_PagesCreatedLinks {
     * @return resource
     */
     protected function process_refback ($inserted, $currentPage) {
-
+        
         this->get_created_state_for_site();
 
         $errno = 0; $errstr = ''; $timeout = 15;
