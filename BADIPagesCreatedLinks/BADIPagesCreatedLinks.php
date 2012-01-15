@@ -40,6 +40,9 @@ $wgBADIConfig['external_intro'] = array();
 $wgBADIConfig['Enabled_SkinTemplateToolboxEnd'] = true; // 
 
 
+    
+
+
 // LOCALIZATION AND SITE LINKS AND TITLES
 
 // These three arrays must have the same number of items
@@ -103,158 +106,343 @@ $wgBADIConfig['uncreatedLinkInlineStyles'] = ''; // e.g., 'font-style:italic';
 //// END CONFIGURATION /////
 
 
-// HOOK
-// Add hook for our link adder (this is the portion that allows us to hook into Mediawiki without modifying its source code)
-$wgHooks['SkinTemplateToolboxEnd'][] = 'badi_addPageCreatedLinks'; // Defined below
+// Note: Whitelists are given precedence if present
+// Sends info when pages are edited with new links added or old links removed (or send all links if option enabled, if never sent before
+$wgBADIConfig['User_content_linkbacks'] = array(
+    "check_preexisting_links" => true,
+    "live_enabled" => true,
+    "types" => array("pingback", "trackback", "refback", "deleteback"),
+    "whitelist" => array(),
+    "blacklist" => array()
+);
 
-// $wgExtensionFunctions[] = 'ef_BADIPagesCreatedLinksSetup'; // Delays execution of a named function until after setup
+// Sends info when pages are created or deleted (or sends all pages if option enabled, if never sent before to that site, and if target site agrees or requests (confirm first that request is valid before notifying))
+$wgBADIConfig['Toolbox_linkbacks'] = array( // This is for admin-specified sites; can be separate toolbox for showing incoming linkbacks
+    "check_preexisting_pages" => true,
+    "live_enabled" => true,
+    "types" => array("pingback", "trackback", "refback", "deleteback", "catback"), // Main use here would probably be catback
+    "sites" => array(),
+    "site_regexps" => array()
+);
+
+$wgBADI = new BADI_PagesCreatedLinks($wgBADIConfig);
 
 
 
-// PROBLEMS IF PUT THESE IN BODY
-/*
- * Utility to determine whether a page is created already (false if not); relies on
- * built-in PHP function, get_headers(), which makes a quick HEAD request and
- * which we use to obtain its Last-Modified header; if it exists, it has been created
- * already, and if not, it has not yet been created
- * @param {String} The URL of the site to detect
- * @returns {Boolean} Whether or not the page has been created
- */
-function badi_getCreatedStateForSite ($url) {
-    global $wgBADIConfig;
-
-    // Store default options to be able to return back to them later (in case MediaWiki or other extensions will rely on it)
-    $defaultOpts = stream_context_get_options(stream_context_get_default());
-
-    // Temporarily change context for the sake of get_headers() (Wikipedia, though not MediaWiki, disallows HEAD
-    // requests without a user-agent specified)
-    stream_context_get_default(isset($wgBADIConfig['stream_context']) ? 
-                $wgBADIConfig['stream_context'] : array(
-                  'http' => array(
-                    'user_agent' => (
-                                                    isset($wgBADIConfig['user-agent']) ?
-                                                        $wgBADIConfig['user-agent'] :
-                                                        wfMsg('user-agent')
-                                                   )
-                  )
-    ));
-    $headers = get_headers($url, 1);
-
-    stream_context_get_default($defaultOpts); // Set it back to original value
-
-    $oldPage = $headers['Last-Modified'] || (strpos($headers[0], '200') !== false);
-    return !!$oldPage;
-}
-/*
- * Our starting hook function; adds links to the Toolbox according to a user-configurable and
- * localizable list of links and titles, and styles links differently depending on whether the link has been created
- * at the target site yet or not
- * @param {Object} $this Passed by Mediawiki (required)
- */
-function badi_addPageCreatedLinks ($out) {
-    // GET LOCALE MESSAGES
-    wfLoadExtensionMessages('BADIPagesCreatedLinks');
-
-    global $wgRequest, $wgLanguageCode, $wgBADIConfig;
-    if (!$wgBADIConfig['Enabled_SkinTemplateToolboxEnd']) { // Give chance to LocalSettings to cause exit
-        return false;
+class BADI_PagesCreatedLinks {
+    protected $config;
+    private $inserts;
+    private $deletes;
+    
+    public function __construct ($config) {        
+        $this->config = $config;
+        $this->hook_setup();
+        
+        if ($config['User_content_linkbacks']['check_preexisting_links']) {
+    
+        }
     }
-
-    $currentPageTitle = $wgRequest->getText('title');
-
-    if (isset($wgBADIConfig['no_namespaces']) &&
-            $wgBADIConfig['no_namespaces'] &&
-            strpos($currentPageTitle, ':') !== false) {
-        return false;
+    private function hook_setup () {
+        global $wgHooks, $wgExtensionFunctions;
+        // HOOK SETUP
+        // Add hook for our link adder (this is the portion that allows us to hook into Mediawiki without modifying its source code)
+        $wgHooks['SkinTemplateToolboxEnd'][] = array(&$this, 'addPageCreatedLinks'); // Defined below
+        $wgHooks['LinksUpdate'][] = array(&$this, 'live_user_content_pingback'); // Defined below
+        $wgHooks['ArticleSaveComplete'][] = array(&$this, 'article_save_complete'); // Defined below
+        // $wgExtensionFunctions[] = 'ef_BADIPagesCreatedLinksSetup'; // Delays execution of a named function until after setup
     }
+    // PROBLEMS IF PUT THESE IN BODY
+    /**
+     * Utility to determine whether a page is created already (false if not); relies on
+     * built-in PHP function, get_headers(), which makes a quick HEAD request and
+     * which we use to obtain its Last-Modified header; if it exists, it has been created
+     * already, and if not, it has not yet been created
+     * @param {String} The URL of the site to detect
+     * @returns {Boolean} Whether or not the page has been created
+     */
+    public function getCreatedStateForSite ($url) {
 
-    $badi_sites = isset($wgBADIConfig['sites'][$wgLanguageCode]) ?
-                                $wgBADIConfig['sites'][$wgLanguageCode] :
-                                (isset($wgBADIConfig['sites']['default']) ? // Allow user to set own default
-                                    $wgBADIConfig['sites']['default'] :
-                                    wfMsg('sites')); // Finally, if none specified at all, use our default
+        // Store default options to be able to return back to them later (in case MediaWiki or other extensions will rely on it)
+        $defaultOpts = stream_context_get_options(stream_context_get_default());
 
-    $badi_sites_editing = isset($wgBADIConfig['sites_editing'][$wgLanguageCode]) ?
-                                                    $wgBADIConfig['sites_editing'][$wgLanguageCode] :
-                                                    (isset($wgBADIConfig['sites_editing']['default']) ? // Allow user to set own default
-                                                            $wgBADIConfig['sites_editing']['default'] :
-                                                            wfMsg('sites_editing')); // Finally, if none specified at all, use our default
-    $badi_titles = isset($wgBADIConfig['titles'][$wgLanguageCode]) ?
-                                    $wgBADIConfig['titles'][$wgLanguageCode] :
-                                    (isset($wgBADIConfig['titles']['default']) ?  // Allow user to set own default
-                                        $wgBADIConfig['titles']['default'] :
-                                        wfMsg('titles')); // Finally, if none specified at all, use our default
+        // Temporarily change context for the sake of get_headers() (Wikipedia, though not MediaWiki, disallows HEAD
+        // requests without a user-agent specified)
+        stream_context_get_default(isset($this->config['stream_context']) ? 
+                    $this->config['stream_context'] : array(
+                      'http' => array(
+                        'user_agent' => (
+                                                        isset($this->config['user-agent']) ?
+                                                            $this->config['user-agent'] :
+                                                            wfMsg('user-agent')
+                                                       )
+                      )
+        ));
+        $headers = get_headers($url, 1);
 
+        stream_context_get_default($defaultOpts); // Set it back to original value
 
-    for ($i = 0, $link_items = '', $len = count($badi_sites); $i < $len; $i++) {
-        if ($badi_sites[$i] == null) { // If the site is explicitly unspecified for the given language (or default), ignore it
-            continue;
+        $oldPage = $headers['Last-Modified'] || (strpos($headers[0], '200') !== false);
+        return !!$oldPage;
+    }
+    /**
+     * Our starting hook function; adds links to the Toolbox according to a user-configurable and
+     * localizable list of links and titles, and styles links differently depending on whether the link has been created
+     * at the target site yet or not
+     * @param {Object} $this Passed by Mediawiki (required)
+     */
+    public function addPageCreatedLinks ($out) {
+        // GET LOCALE MESSAGES
+        wfLoadExtensionMessages('BADIPagesCreatedLinks');
+
+        global $wgRequest, $wgLanguageCode;
+        if (!$this->config['Enabled_SkinTemplateToolboxEnd']) { // Give chance to LocalSettings to cause exit
+            return false;
         }
 
-        // Let user be able to dynamically determine URL (in this case one can define an array exclusively as 'default' which is our fallback)
-        $site = str_replace('{{LANGUAGE}}', $wgLanguageCode, $badi_sites[$i]);
-        $site_editing = str_replace('{{LANGUAGE}}', $wgLanguageCode, $badi_sites_editing[$i]);
+        $currentPageTitle = $wgRequest->getText('title');
 
-        $siteTitle = $badi_titles[$i];
-        $siteWithTitle = str_replace('{{SITE}}', $site, str_replace(
-                                                                                                '{{CURRENT_PAGE_TITLE}}',
-                                                                                                $currentPageTitle,
-                                                                                                $wgBADIConfig['site_and_title_templates']));
+        if (isset($this->config['no_namespaces']) &&
+                $this->config['no_namespaces'] &&
+                strpos($currentPageTitle, ':') !== false) {
+            return false;
+        }
 
-        // Might allow defining inline styles for easier though less ideal configuration
-        $created = badi_getCreatedStateForSite($siteWithTitle);
+        $badi_sites = isset($this->config['sites'][$wgLanguageCode]) ?
+                                    $this->config['sites'][$wgLanguageCode] :
+                                    (isset($this->config['sites']['default']) ? // Allow user to set own default
+                                        $this->config['sites']['default'] :
+                                        wfMsg('sites')); // Finally, if none specified at all, use our default
 
-        $class = $created ? $wgBADIConfig['createdLinkClass'] : $wgBADIConfig['uncreatedLinkClass'];
-        $styles = $created ? $wgBADIConfig['createdLinkInlineStyles'] : $wgBADIConfig['uncreatedLinkInlineStyles'];
+        $badi_sites_editing = isset($this->config['sites_editing'][$wgLanguageCode]) ?
+                                                        $this->config['sites_editing'][$wgLanguageCode] :
+                                                        (isset($this->config['sites_editing']['default']) ? // Allow user to set own default
+                                                                $this->config['sites_editing']['default'] :
+                                                                wfMsg('sites_editing')); // Finally, if none specified at all, use our default
+        $badi_titles = isset($this->config['titles'][$wgLanguageCode]) ?
+                                        $this->config['titles'][$wgLanguageCode] :
+                                        (isset($this->config['titles']['default']) ?  // Allow user to set own default
+                                            $this->config['titles']['default'] :
+                                            wfMsg('titles')); // Finally, if none specified at all, use our default
 
-        $siteWithTitle = $created ?
-                                            $siteWithTitle :
-                                            str_replace(
-                                                '{{CURRENT_PAGE_TITLE}}',
-                                                $currentPageTitle,
-                                                str_replace('{{SITE_EDITING}}', $site_editing, $wgBADIConfig['site_editing_templates'])
-                                            );
 
-        $link_items .= str_replace(
-            '{{LOCALIZED_TITLE}}',
-            $siteTitle,
-            str_replace(
-                '{{LOCALIZED_LINK}}',
-                $siteWithTitle,
+        for ($i = 0, $link_items = '', $len = count($badi_sites); $i < $len; $i++) {
+            if ($badi_sites[$i] == null) { // If the site is explicitly unspecified for the given language (or default), ignore it
+                continue;
+            }
+
+            // Let user be able to dynamically determine URL (in this case one can define an array exclusively as 'default' which is our fallback)
+            $site = str_replace('{{LANGUAGE}}', $wgLanguageCode, $badi_sites[$i]);
+            $site_editing = str_replace('{{LANGUAGE}}', $wgLanguageCode, $badi_sites_editing[$i]);
+
+            $siteTitle = $badi_titles[$i];
+            $siteWithTitle = str_replace('{{SITE}}', $site, str_replace(
+                                                                                                    '{{CURRENT_PAGE_TITLE}}',
+                                                                                                    $currentPageTitle,
+                                                                                                    $this->config['site_and_title_templates']));
+
+            // Might allow defining inline styles for easier though less ideal configuration
+            $created = $this->getCreatedStateForSite($siteWithTitle);
+
+            $class = $created ? $this->config['createdLinkClass'] : $this->config['uncreatedLinkClass'];
+            $styles = $created ? $this->config['createdLinkInlineStyles'] : $this->config['uncreatedLinkInlineStyles'];
+
+            $siteWithTitle = $created ?
+                                                $siteWithTitle :
+                                                str_replace(
+                                                    '{{CURRENT_PAGE_TITLE}}',
+                                                    $currentPageTitle,
+                                                    str_replace('{{SITE_EDITING}}', $site_editing, $this->config['site_editing_templates'])
+                                                );
+
+            $link_items .= str_replace(
+                '{{LOCALIZED_TITLE}}',
+                $siteTitle,
                 str_replace(
-                    '{{CLASS}}',
-                    $class,
+                    '{{LOCALIZED_LINK}}',
+                    $siteWithTitle,
                     str_replace(
-                        '{{STYLES}}',
-                        isset($styles) ? 'style="'.($styles).'"' : '',
-                        $wgBADIConfig['external_site_templates']
+                        '{{CLASS}}',
+                        $class,
+                        str_replace(
+                            '{{STYLES}}',
+                            isset($styles) ? 'style="'.($styles).'"' : '',
+                            $this->config['external_site_templates']
+                        )
                     )
                 )
+            );
+
+        }
+
+        if ($link_items === '') {
+            return false;
+        }
+
+        echo str_replace(
+            '{{LINK_ITEMS}}',
+            $link_items,
+            str_replace(
+                '{{LOCALIZED_INTRO}}',
+                isset($this->config['external_intro'][$wgLanguageCode]) ?
+                    $this->config['external_intro'][$wgLanguageCode] :
+                    (isset($this->config['external_intro']['default']) ?
+                        $this->config['external_intro']['default'] :
+                        wfMsg('external-pages-w-same-title')),
+                $this->config['external_sites_templates']
             )
         );
 
+        return true;
     }
 
-    if ($link_items === '') {
-        return false;
-    }
+    ////// FOR NEW AND OLD CONTENT (Allpages); subscriber notification, special API serving when receive polling?
 
-    echo str_replace(
-        '{{LINK_ITEMS}}',
-        $link_items,
-        str_replace(
-            '{{LOCALIZED_INTRO}}',
-            isset($wgBADIConfig['external_intro'][$wgLanguageCode]) ?
-                $wgBADIConfig['external_intro'][$wgLanguageCode] :
-                (isset($wgBADIConfig['external_intro']['default']) ?
-                    $wgBADIConfig['external_intro']['default'] :
-                    wfMsg('external-pages-w-same-title')),
-            $wgBADIConfig['external_sites_templates']
-        )
+    // GENERATION OF PINGBACKS (user and admin) AND DELETEBACKS?
+    // 1) NEW: Parse links and submit if new, and send delete if old
+
+    /*
+    // Sends info when pages are edited with new links added or old links removed (or send all links if option enabled, if never sent before
+    $this->config['User_content_linkbacks'] = array(
+        "check_preexisting_links"=>true,
+        "live_enabled"=>true,
+        "types"=>array("pingback", "trackback", "refback", "deleteback"),
+        "whitelist"=>array(),
+        "blacklist"=>array()
     );
 
-    return true;
-}
+    // Hook: ArticleInsertComplete, ArticleDeleteComplete
+    // Sends info when pages are created or deleted (or sends all pages if option enabled, if never sent before to that site, and if target site agrees or requests (confirm first that request is valid before notifying))
+    $this->config['Toolbox_linkbacks'] = array( // This is for admin-specified sites; can be separate toolbox for showing incoming linkbacks
+        "check_preexisting_pages"=>true,
+        "live_enabled"=>true,
+        "types"=>array("pingback", "trackback", "refback", "deleteback", "catback"), // Main use here would probably be catback
+        "sites"=>array(),
+        "site_regexps"=>array()
+    );
+    */
 
+    /** Helper function
+    * We could wait for a response and reshape external link to show error (though also needs to be available to all users)
+    * @param string $inserted
+    * @param string $currentPage
+    * @return resource
+    */
+    private function process_refback ($inserted, $currentPage) {
+        $errno = 0; $errstr = ''; $timeout = 15;
+        $s = stream_socket_client($inserted.':80', $errno, $errstr, $timeout, // Use PHP5 method to ensure site gets visited without waiting
+            STREAM_CLIENT_ASYNC_CONNECT|STREAM_CLIENT_CONNECT, 
+            stream_context_create(
+                array(
+                    'method'=>'GET',
+                    'header'=>'Referer: '.$currentPage."\r\n"
+                )
+            )
+        );
+        return $s; // We could at least confirm it at least established a socket (and as mentioned above, we could also check
+        // if it gets a successful response)
+    }
+
+    // This "ArticleSaveComplete" hook runs after article save (so pingback server can find links on page)
+    public function article_save_complete ($out) {
+        global $wgHooks;
+        $inserts = $this->inserts;
+        $deletes = $this->deletes;
+        $currentPage = $out->getFullURL(); // need this URL to serve as refback referrer
+        
+        // Unlikely would want to allow users to add catbacks
+        if (in_array('pingback', $this->config['User_content_linkbacks']['types'])) {
+            foreach ($inserts as $insert=>$ignore) {
+                $this->config['User_content_linkbacks']['whitelist'])
+                $this->config['User_content_linkbacks']['blacklist'])
+                
+            }
+        }
+        elseif (in_array('trackback', $this->config['User_content_linkbacks']['types'])) {
+            foreach ($inserts as $insert=>$ignore) {
+                $this->config['User_content_linkbacks']['whitelist'])
+                $this->config['User_content_linkbacks']['blacklist'])
+                
+            }
+        }
+        
+        // DELETIONS
+        // If not enabling our special delete, we should avoid resending in case keeps being deleted and added back
+        // Worth having server verify actually deleted (if trusted enough to add)
+        if (in_array('deleteback', $this->config['User_content_linkbacks']['types'])) {
+            foreach ($deletes as $delete=>$ignore) {
+                $this->config['User_content_linkbacks']['whitelist'])
+                $this->config['User_content_linkbacks']['blacklist'])
+                
+            }
+        }
+    }
+
+    public function live_user_content_pingback ($out) {
+        // SETUP
+        global $wgHooks;
+        $linkbackConfig = $this->config['User_content_linkbacks'];
+        if (!$linkbackConfig || !$linkbackConfig['live_enabled']) {    
+            return false;
+        }
+        $existing = $out->getExistingExternals();
+
+        /*
+        $types = array('pingback', 'trackback', 'refback');
+        foreach ($types as $type) {
+            if (!in_array($type, $linkbackConfig['types'])) {
+                return false;
+            }
+            call_user_func(array(&$this, 'handler_'.$type), $out);
+        }
+    public function handler_pingback ($out) {
+    }
+    public function handler_trackback ($out) {
+    }
+    public function handler_refback ($out) {
+    }
+        */
+
+        // INSERTS/DELETES: Store for after time page is saved (so pingback can actually find the links!; other
+        //                   types might actually be able to save now and therefore quickly change link styling)
+        $this->inserts = $inserts = array_diff_key( $out->mExternals, $existing ); // using keys for URL
+        $this->deletes = $deletes = array_diff_key( $existing, $out->mExternals ); // using keys for URL
+        
+        if (in_array('refback', $linkbackConfig['types'])) {
+            if (!$linkbackConfig['whitelist'] || 
+                !$linkbackConfig['blacklist']) {
+                return false; // Useless if no whitelist or blacklist
+            }
+            foreach ($inserts as $inserted => $ignore) {
+                if ($linkbackConfig['whitelist']) {
+                    if (in_array(
+                        parse_url($inserted, PHP_URL_HOST), 
+                        $linkbackConfig['whitelist']
+                        )
+                    ) {
+                        $this->process_refback($inserted, $currentPage);
+                    }
+                    // If not in array, do nothing and do not check blacklist
+                }
+                elseif (!in_array(
+                        parse_url($inserted, PHP_URL_HOST), 
+                        $linkbackConfig['blacklist']
+                ) {
+                    $this->process_refback($inserted, $currentPage);
+                }
+            }        
+        }
+    }
+
+    // 2) OLD: Disable NEW temporarily; Parse all latest snapshots and submit all; if new submissions since, send them & reenable (Could filter by all pages, but since might want them in the future, best to send unless advertised not to send)
+
+
+    // GENERATION OF TRACKBACKS (user and admin) AND DELETEBACKS?
+
+    // GENERATION OF REFBACKS (user and admin); ensure pages visited once
+
+    // GENERATION OF CATBACKS (same topic) - (use hook for newly created or deleted page)
+    //      (Detect <meta> indicating Edit Link when page does not exist)
+
+}
 
 ?>
