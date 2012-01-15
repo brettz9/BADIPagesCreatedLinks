@@ -24,10 +24,10 @@ $wgExtensionMessagesFiles['BADIPagesCreatedLinks'] = dirname( __FILE__ ) . '/BAD
 
 // BADI PAGE CREATED EXTENSION SETUP (do not change)
 
-$wgBADIConfig = array();
-$wgBADIConfig['sites'] = array();
-$wgBADIConfig['titles'] = array();
-$wgBADIConfig['external_intro'] = array();
+$BADIConfig = array();
+$BADIConfig['sites'] = array();
+$BADIConfig['titles'] = array();
+$BADIConfig['external_intro'] = array();
 
 
 
@@ -37,7 +37,7 @@ $wgBADIConfig['external_intro'] = array();
 
 
 // WHICH COMPONENTS TO ENABLE
-$wgBADIConfig['Enabled_SkinTemplateToolboxEnd'] = true; // 
+$BADIConfig['Enabled_SkinTemplateToolboxEnd'] = true; // 
 
 
     
@@ -47,21 +47,21 @@ $wgBADIConfig['Enabled_SkinTemplateToolboxEnd'] = true; //
 
 // These three arrays must have the same number of items
 // For most Mediawiki sites, will need to ensure there is a slash at the end of the links
-// $wgBADIConfig['titles']['default'] = array('Wikipedia');
-// $wgBADIConfig['sites']['default'] = array('http://{{LANGUAGE}}.wikipedia.org/wiki/');
-// $wgBADIConfig['sites_editing']['default'] = array('http://{{LANGUAGE}}.wikipedia.org/w/index.php?title=');
-// $wgBADIConfig['external_intro']['default'] = ''; // See wfMsg('external-pages-w-same-title')
+// $BADIConfig['titles']['default'] = array('Wikipedia');
+// $BADIConfig['sites']['default'] = array('http://{{LANGUAGE}}.wikipedia.org/wiki/');
+// $BADIConfig['sites_editing']['default'] = array('http://{{LANGUAGE}}.wikipedia.org/w/index.php?title=');
+// $BADIConfig['external_intro']['default'] = ''; // See wfMsg('external-pages-w-same-title')
 //
 // Template variables: {{CLASS}}, {{STYLES}}, {{LOCALIZED_LINK}}, {{LOCALIZED_TITLE}}
 // Fix: If necessary, the following three could be themselves localizable, though probably form would not change
 // Need not be changed
-$wgBADIConfig['external_site_templates'] = 
+$BADIConfig['external_site_templates'] = 
     '<li><a class="{{CLASS}}" {{STYLES}} href="{{LOCALIZED_LINK}}">{{LOCALIZED_TITLE}}</a></li>'."\n";
 // Template variables: {{CURRENT_PAGE_TITLE}}, {{SITE_EDITING}}
-$wgBADIConfig['site_editing_templates'] = '{{SITE_EDITING}}{{CURRENT_PAGE_TITLE}}&action=edit';
+$BADIConfig['site_editing_templates'] = '{{SITE_EDITING}}{{CURRENT_PAGE_TITLE}}&action=edit';
 
 // Template variables: {{SITE}}, {{CURRENT_PAGE_TITLE}}
-$wgBADIConfig['site_and_title_templates'] = '{{SITE}}{{CURRENT_PAGE_TITLE}}';
+$BADIConfig['site_and_title_templates'] = '{{SITE}}{{CURRENT_PAGE_TITLE}}';
 
 // END MARKUP
 
@@ -74,7 +74,7 @@ $wgBADIConfig['site_and_title_templates'] = '{{SITE}}{{CURRENT_PAGE_TITLE}}';
 // Created immediately before external sites header
 // Template variables: {{LOCALIZED_INTRO}}, {{LINK_ITEMS}}
 // Need not be changed
-$wgBADIConfig['external_sites_templates'] = <<<HERE
+$BADIConfig['external_sites_templates'] = <<<HERE
     <li>{{LOCALIZED_INTRO}}
         <ul>
             {{LINK_ITEMS}}
@@ -86,46 +86,46 @@ HERE;
 // CSS STYLING
 // Class names indicating whether a page has been created or not; relies on skin's own default pre-styled class names
 // This probably will not need to be hanged
-$wgBADIConfig['createdLinkClass'] = 'external';
-$wgBADIConfig['uncreatedLinkClass'] = 'new';
+$BADIConfig['createdLinkClass'] = 'external';
+$BADIConfig['uncreatedLinkClass'] = 'new';
 
 // Leave blank unless you need specific inline styles (e.g., if you want to change the styles but don't want to
 //    find or add to a stylesheet)
 // Fix: make language dependent?
-$wgBADIConfig['createdLinkInlineStyles'] = ''; // e.g., font-weight:bold;
-$wgBADIConfig['uncreatedLinkInlineStyles'] = ''; // e.g., 'font-style:italic';
+$BADIConfig['createdLinkInlineStyles'] = ''; // e.g., font-weight:bold;
+$BADIConfig['uncreatedLinkInlineStyles'] = ''; // e.g., 'font-style:italic';
 // END CSS STYLING
 
 
 // USER AGENT
 // Don't need to change (or even include); explicitly setting to empty string will get a HTTP 403 error from
 //   Wikipedia (but not custom Mediawiki apparently unless so configured)
-// $wgBADIConfig['user-agent'] = 'BADI Mediawiki page-created checker';
-// $wgBADIConfig['stream_context']; // Can be used if one needs to change more than the user-agent for the HTTP HEAD request
+// $BADIConfig['user-agent'] = 'BADI Mediawiki page-created checker';
+// $BADIConfig['stream_context']; // Can be used if one needs to change more than the user-agent for the HTTP HEAD request
 // END USER AGENT
 //// END CONFIGURATION /////
 
 
 // Note: Whitelists are given precedence if present
 // Sends info when pages are edited with new links added or old links removed (or send all links if option enabled, if never sent before
-$wgBADIConfig['User_content_linkbacks'] = array(
-    "check_preexisting_links" => true,
-    "live_enabled" => true,
-    "types" => array("pingback", "trackback", "refback", "deleteback"),
-    "whitelist" => array(),
-    "blacklist" => array()
+$BADIConfig['User_content_linkbacks'] = array(
+    'check_preexisting_links' => true,
+    'live_enabled' => true,
+    'types' => array('pingback', 'trackback', 'refback', 'deleteback'),
+    'whitelist' => array(),
+    'blacklist' => array()
 );
 
 // Sends info when pages are created or deleted (or sends all pages if option enabled, if never sent before to that site, and if target site agrees or requests (confirm first that request is valid before notifying))
-$wgBADIConfig['Toolbox_linkbacks'] = array( // This is for admin-specified sites; can be separate toolbox for showing incoming linkbacks
-    "check_preexisting_pages" => true,
-    "live_enabled" => true,
-    "types" => array("pingback", "trackback", "refback", "deleteback", "catback"), // Main use here would probably be catback
-    "sites" => array(),
-    "site_regexps" => array()
+$BADIConfig['Toolbox_linkbacks'] = array( // This is for admin-specified sites; can be separate toolbox for showing incoming linkbacks
+    'check_preexisting_pages' => true,
+    'live_enabled' => true,
+    'types' => array('pingback', 'trackback', 'refback', 'deleteback', 'catback'), // Main use here would probably be catback
+    'sites' => array(),
+    'site_regexps' => array()
 );
 
-$wgBADI = new BADI_PagesCreatedLinks($wgBADIConfig);
+$BADI = new BADI_PagesCreatedLinks($BADIConfig);
 
 
 
