@@ -156,7 +156,7 @@ class BADI_PagesCreatedLinks {
 
         // Hooks defined as methods below
         if ($contentLinkbackConfig && $contentLinkbackConfig['live_enabled']) {
-            $wgHooks['LinksUpdate'][] = array(&$this, 'live_user_content_pingback');
+            $wgHooks['LinksUpdate'][] = array(&$this, 'links_update');
             $wgHooks['ArticleSaveComplete'][] = array(&$this, 'article_save_complete');
             // Shaping class of links to indicate linkback status
             $wgHooks['LinkerMakeExternalLink'][] = array(&$this, 'linker_make_external_link');
@@ -384,7 +384,7 @@ class BADI_PagesCreatedLinks {
         }
     }
 
-    public function live_user_content_pingback ($out) {
+    public function links_update ($out) {
         // SETUP
         global $wgHooks;
         $contentLinkbackConfig = $this->config['User_content_linkbacks'];
