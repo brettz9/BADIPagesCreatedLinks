@@ -97,6 +97,7 @@ $BADIConfig_PCL['uncreatedLinkInlineStyles'] = ''; // e.g., 'font-style:italic';
 //   Wikipedia (but not custom Mediawiki apparently unless so configured)
 // $BADIConfig['user-agent'] = 'BADI Mediawiki page-created checker';
 // $BADIConfig['stream_context']; // Can be used if one needs to change more than the user-agent for the HTTP HEAD request
+// $BADIConfig['utilize_refback_response']; // Boolean for whether to wait for and utilize Refback response. Adds wait time for user when enabled.
 // END USER AGENT
 //// END CONFIGURATION /////
 
@@ -176,29 +177,43 @@ class BADI_PagesCreatedLinks {
      * built-in PHP function, get_headers(), which makes a quick HEAD request and
      * which we use to obtain its Last-Modified header; if it exists, it has been created
      * already, and if not, it has not yet been created
-     * @param {String} The URL of the site to detect
+     * @param string $url The URL of the site to detect
+     * @param array $extraHeaders Extra headers for the HTTP request
      * @returns {Boolean} Whether or not the page has been created
      */
-    protected function get_created_state_for_site ($url) {
+    protected function page_is_created ($url, $extraHeaders = array()) {
 
         // Store default options to be able to return back to them later (in case MediaWiki or other extensions will rely on it)
         $defaultOpts = stream_context_get_options(stream_context_get_default());
 
+        $streamArr = isset($this->config['stream_context']) ?
+            $this->config['stream_context'] :
+            array(
+                'http' => array(
+                    'user_agent' => (
+                        isset($this->config['user-agent']) ?
+                            $this->config['user-agent'] :
+                            wfMsg('user-agent')
+                        )
+                )
+            );
+        if (empty($streamArr['http']['header'])) {
+            $streamArr['http']['header'] = '';
+        }
+        foreach ($extraHeaders as $header => $header_content) {
+            $header_regexp = '@^('.preg_quote($header).':)([^\r\n])*@im';
+            $header_line = $header . ': ' . $header_content;
+            if (preg_match($header_regexp, $streamArr['http']['header'])) {
+                $streamArr['http']['header'] = preg_replace($header_regexp, $header_line, $streamArr['http']['header']);
+            }
+            else {
+                $streamArr['http']['header'] .= $header_line;
+            }
+        }
+
         // Temporarily change context for the sake of get_headers() (Wikipedia, though not MediaWiki, disallows HEAD
         // requests without a user-agent specified)
-        stream_context_get_default(
-            isset($this->config['stream_context']) ?
-                $this->config['stream_context'] :
-                array(
-                    'http' => array(
-                        'user_agent' => (
-                            isset($this->config['user-agent']) ?
-                                $this->config['user-agent'] :
-                                wfMsg('user-agent')
-                            )
-                    )
-                )
-        );
+        stream_context_get_default($streamArr);
         $headers = get_headers($url, 1);
 
         stream_context_get_default($defaultOpts); // Set it back to original value
@@ -263,7 +278,7 @@ class BADI_PagesCreatedLinks {
                                                                                                     $this->pclConfig['site_and_title_templates']));
 
             // Might allow defining inline styles for easier though less ideal configuration
-            $created = $this->get_created_state_for_site($siteWithTitle);
+            $created = $this->page_is_created($siteWithTitle);
 
             $class = $created ? $this->pclConfig['createdLinkClass'] : $this->pclConfig['uncreatedLinkClass'];
             $styles = $created ? $this->pclConfig['createdLinkInlineStyles'] : $this->pclConfig['uncreatedLinkInlineStyles'];
@@ -329,8 +344,10 @@ class BADI_PagesCreatedLinks {
     * @return resource
     */
     protected function process_refback ($inserted, $currentPage) {
-        
-        this->get_created_state_for_site();
+        if ($this->config['utilize_refback_response']) {
+            this->page_is_created($inserted, array('Referer' => $currentPage));
+            return;
+        }
 
         $errno = 0; $errstr = ''; $timeout = 15;
         $s = stream_socket_client($inserted.':80', $errno, $errstr, $timeout, // Use PHP5 method to ensure site gets visited without waiting
