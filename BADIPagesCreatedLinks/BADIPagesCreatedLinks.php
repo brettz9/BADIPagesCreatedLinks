@@ -25,38 +25,43 @@ $wgExtensionMessagesFiles['BADIPagesCreatedLinks'] = dirname( __FILE__ ) . '/BAD
 // BADI PAGE CREATED EXTENSION SETUP (do not change)
 
 $BADIConfig = array(
-    'sites' => array(),
-    'titles' => array(),
-    'external_intro' => array()
+    'pages_created_links' => array(
+        'sites' => array(),
+        'titles' => array(),
+        'external_intro' => array()
+    )
 );
+
+// Make our lives a little easier
+$BADIConfig_PCL = &$BADIConfig['pages_created_links'];
 
 //// START DEFAULT CONFIGURATION /////
 // Although any of the following can (and probably should) be overridden in your LocalSettings.php, they should be
 //   kept here in order to function as default values
 
 // WHICH COMPONENTS TO ENABLE
-$BADIConfig['Enabled_SkinTemplateToolboxEnd'] = true; // 
+$BADIConfig_PCL['Enabled_SkinTemplateToolboxEnd'] = true;
 
 
 // LOCALIZATION AND SITE LINKS AND TITLES
 
 // These three arrays must have the same number of items
 // For most Mediawiki sites, will need to ensure there is a slash at the end of the links
-// $BADIConfig['titles']['default'] = array('Wikipedia');
-// $BADIConfig['sites']['default'] = array('http://{{LANGUAGE}}.wikipedia.org/wiki/');
-// $BADIConfig['sites_editing']['default'] = array('http://{{LANGUAGE}}.wikipedia.org/w/index.php?title=');
-// $BADIConfig['external_intro']['default'] = ''; // See wfMsg('external-pages-w-same-title')
+// $BADIConfig_PCL['titles']['default'] = array('Wikipedia');
+// $BADIConfig_PCL['sites']['default'] = array('http://{{LANGUAGE}}.wikipedia.org/wiki/');
+// $BADIConfig_PCL['sites_editing']['default'] = array('http://{{LANGUAGE}}.wikipedia.org/w/index.php?title=');
+// $BADIConfig_PCL['external_intro']['default'] = ''; // See wfMsg('external-pages-w-same-title')
 //
 // Template variables: {{CLASS}}, {{STYLES}}, {{LOCALIZED_LINK}}, {{LOCALIZED_TITLE}}
 // Fix: If necessary, the following three could be themselves localizable, though probably form would not change
 // Need not be changed
-$BADIConfig['external_site_templates'] = 
+$BADIConfig_PCL['external_site_templates'] = 
     '<li><a class="{{CLASS}}" {{STYLES}} href="{{LOCALIZED_LINK}}">{{LOCALIZED_TITLE}}</a></li>'."\n";
 // Template variables: {{CURRENT_PAGE_TITLE}}, {{SITE_EDITING}}
-$BADIConfig['site_editing_templates'] = '{{SITE_EDITING}}{{CURRENT_PAGE_TITLE}}&action=edit';
+$BADIConfig_PCL['site_editing_templates'] = '{{SITE_EDITING}}{{CURRENT_PAGE_TITLE}}&action=edit';
 
 // Template variables: {{SITE}}, {{CURRENT_PAGE_TITLE}}
-$BADIConfig['site_and_title_templates'] = '{{SITE}}{{CURRENT_PAGE_TITLE}}';
+$BADIConfig_PCL['site_and_title_templates'] = '{{SITE}}{{CURRENT_PAGE_TITLE}}';
 
 // END MARKUP
 
@@ -69,7 +74,7 @@ $BADIConfig['site_and_title_templates'] = '{{SITE}}{{CURRENT_PAGE_TITLE}}';
 // Created immediately before external sites header
 // Template variables: {{LOCALIZED_INTRO}}, {{LINK_ITEMS}}
 // Need not be changed
-$BADIConfig['external_sites_templates'] = <<<HERE
+$BADIConfig_PCL['external_sites_templates'] = <<<HERE
     <li>{{LOCALIZED_INTRO}}
         <ul>
             {{LINK_ITEMS}}
@@ -81,14 +86,14 @@ HERE;
 // CSS STYLING
 // Class names indicating whether a page has been created or not; relies on skin's own default pre-styled class names
 // This probably will not need to be hanged
-$BADIConfig['createdLinkClass'] = 'external';
-$BADIConfig['uncreatedLinkClass'] = 'new';
+$BADIConfig_PCL['createdLinkClass'] = 'external';
+$BADIConfig_PCL['uncreatedLinkClass'] = 'new';
 
 // Leave blank unless you need specific inline styles (e.g., if you want to change the styles but don't want to
 //    find or add to a stylesheet)
 // Fix: make language dependent?
-$BADIConfig['createdLinkInlineStyles'] = ''; // e.g., font-weight:bold;
-$BADIConfig['uncreatedLinkInlineStyles'] = ''; // e.g., 'font-style:italic';
+$BADIConfig_PCL['createdLinkInlineStyles'] = ''; // e.g., font-weight:bold;
+$BADIConfig_PCL['uncreatedLinkInlineStyles'] = ''; // e.g., 'font-style:italic';
 // END CSS STYLING
 
 
@@ -120,6 +125,7 @@ $BADIConfig['Toolbox_linkbacks'] = array( // This is for admin-specified sites; 
     'site_regexps' => array()
 );
 
+
 $BADI = new BADI_PagesCreatedLinks($BADIConfig);
 
 
@@ -131,6 +137,8 @@ class BADI_PagesCreatedLinks {
     
     public function __construct ($config) {        
         $this->config = $config;
+        $this->pclConfig = &$this->config['pages_created_links'];
+
         $this->hook_setup();
         
         if ($config['User_content_linkbacks']['check_preexisting_links']) {
@@ -141,10 +149,9 @@ class BADI_PagesCreatedLinks {
         global $wgHooks, $wgExtensionFunctions;
         $contentLinkbackConfig = $this->config['User_content_linkbacks'];
         $toolboxLinkbackConfig = $this->config['Toolbox_linkbacks'];
-        
         // HOOK SETUP
         // Add hook for our link adder (this is the portion that allows us to hook into Mediawiki without modifying its source code)
-        $wgHooks['SkinTemplateToolboxEnd'][] = array(&$this, 'addPageCreatedLinks'); // Defined as method below
+        $wgHooks['SkinTemplateToolboxEnd'][] = array(&$this, 'add_page_created_links'); // Defined as method below
         // $wgExtensionFunctions[] = 'ef_BADIPagesCreatedLinksSetup'; // Delays execution of a named function until after setup
         
         if ($contentLinkbackConfig && $contentLinkbackConfig['live_enabled']) {
@@ -170,19 +177,19 @@ class BADI_PagesCreatedLinks {
      * @param {String} The URL of the site to detect
      * @returns {Boolean} Whether or not the page has been created
      */
-    public function getCreatedStateForSite ($url) {
+    protected function get_created_state_for_site ($url) {
 
         // Store default options to be able to return back to them later (in case MediaWiki or other extensions will rely on it)
         $defaultOpts = stream_context_get_options(stream_context_get_default());
 
         // Temporarily change context for the sake of get_headers() (Wikipedia, though not MediaWiki, disallows HEAD
         // requests without a user-agent specified)
-        stream_context_get_default(isset($this->config['stream_context']) ? 
-                    $this->config['stream_context'] : array(
+        stream_context_get_default(isset($this->pclConfig['stream_context']) ? 
+                    $this->pclConfig['stream_context'] : array(
                       'http' => array(
                         'user_agent' => (
-                                                        isset($this->config['user-agent']) ?
-                                                            $this->config['user-agent'] :
+                                                        isset($this->pclConfig['user-agent']) ?
+                                                            $this->pclConfig['user-agent'] :
                                                             wfMsg('user-agent')
                                                        )
                       )
@@ -200,38 +207,38 @@ class BADI_PagesCreatedLinks {
      * at the target site yet or not
      * @param {Object} $this Passed by Mediawiki (required)
      */
-    public function addPageCreatedLinks ($out) {
+    public function add_page_created_links ($out) {
         // GET LOCALE MESSAGES
         wfLoadExtensionMessages('BADIPagesCreatedLinks');
 
         global $wgRequest, $wgLanguageCode;
-        if (!$this->config['Enabled_SkinTemplateToolboxEnd']) { // Give chance to LocalSettings to cause exit
+        if (!$this->pclConfig['Enabled_SkinTemplateToolboxEnd']) { // Give chance to LocalSettings to cause exit
             return false;
         }
 
         $currentPageTitle = $wgRequest->getText('title');
 
-        if (isset($this->config['no_namespaces']) &&
-                $this->config['no_namespaces'] &&
+        if (isset($this->pclConfig['no_namespaces']) &&
+                $this->pclConfig['no_namespaces'] &&
                 strpos($currentPageTitle, ':') !== false) {
             return false;
         }
 
-        $badi_sites = isset($this->config['sites'][$wgLanguageCode]) ?
-                                    $this->config['sites'][$wgLanguageCode] :
-                                    (isset($this->config['sites']['default']) ? // Allow user to set own default
-                                        $this->config['sites']['default'] :
+        $badi_sites = isset($this->pclConfig['sites'][$wgLanguageCode]) ?
+                                    $this->pclConfig['sites'][$wgLanguageCode] :
+                                    (isset($this->pclConfig['sites']['default']) ? // Allow user to set own default
+                                        $this->pclConfig['sites']['default'] :
                                         wfMsg('sites')); // Finally, if none specified at all, use our default
 
-        $badi_sites_editing = isset($this->config['sites_editing'][$wgLanguageCode]) ?
-                                                        $this->config['sites_editing'][$wgLanguageCode] :
-                                                        (isset($this->config['sites_editing']['default']) ? // Allow user to set own default
-                                                                $this->config['sites_editing']['default'] :
+        $badi_sites_editing = isset($this->pclConfig['sites_editing'][$wgLanguageCode]) ?
+                                                        $this->pclConfig['sites_editing'][$wgLanguageCode] :
+                                                        (isset($this->pclConfig['sites_editing']['default']) ? // Allow user to set own default
+                                                                $this->pclConfig['sites_editing']['default'] :
                                                                 wfMsg('sites_editing')); // Finally, if none specified at all, use our default
-        $badi_titles = isset($this->config['titles'][$wgLanguageCode]) ?
-                                        $this->config['titles'][$wgLanguageCode] :
-                                        (isset($this->config['titles']['default']) ?  // Allow user to set own default
-                                            $this->config['titles']['default'] :
+        $badi_titles = isset($this->pclConfig['titles'][$wgLanguageCode]) ?
+                                        $this->pclConfig['titles'][$wgLanguageCode] :
+                                        (isset($this->pclConfig['titles']['default']) ?  // Allow user to set own default
+                                            $this->pclConfig['titles']['default'] :
                                             wfMsg('titles')); // Finally, if none specified at all, use our default
 
 
@@ -248,20 +255,20 @@ class BADI_PagesCreatedLinks {
             $siteWithTitle = str_replace('{{SITE}}', $site, str_replace(
                                                                                                     '{{CURRENT_PAGE_TITLE}}',
                                                                                                     $currentPageTitle,
-                                                                                                    $this->config['site_and_title_templates']));
+                                                                                                    $this->pclConfig['site_and_title_templates']));
 
             // Might allow defining inline styles for easier though less ideal configuration
-            $created = $this->getCreatedStateForSite($siteWithTitle);
+            $created = $this->get_created_state_for_site($siteWithTitle);
 
-            $class = $created ? $this->config['createdLinkClass'] : $this->config['uncreatedLinkClass'];
-            $styles = $created ? $this->config['createdLinkInlineStyles'] : $this->config['uncreatedLinkInlineStyles'];
+            $class = $created ? $this->pclConfig['createdLinkClass'] : $this->pclConfig['uncreatedLinkClass'];
+            $styles = $created ? $this->pclConfig['createdLinkInlineStyles'] : $this->pclConfig['uncreatedLinkInlineStyles'];
 
             $siteWithTitle = $created ?
                                                 $siteWithTitle :
                                                 str_replace(
                                                     '{{CURRENT_PAGE_TITLE}}',
                                                     $currentPageTitle,
-                                                    str_replace('{{SITE_EDITING}}', $site_editing, $this->config['site_editing_templates'])
+                                                    str_replace('{{SITE_EDITING}}', $site_editing, $this->pclConfig['site_editing_templates'])
                                                 );
 
             $link_items .= str_replace(
@@ -276,12 +283,11 @@ class BADI_PagesCreatedLinks {
                         str_replace(
                             '{{STYLES}}',
                             isset($styles) ? 'style="'.($styles).'"' : '',
-                            $this->config['external_site_templates']
+                            $this->pclConfig['external_site_templates']
                         )
                     )
                 )
             );
-
         }
 
         if ($link_items === '') {
@@ -293,12 +299,12 @@ class BADI_PagesCreatedLinks {
             $link_items,
             str_replace(
                 '{{LOCALIZED_INTRO}}',
-                isset($this->config['external_intro'][$wgLanguageCode]) ?
-                    $this->config['external_intro'][$wgLanguageCode] :
-                    (isset($this->config['external_intro']['default']) ?
-                        $this->config['external_intro']['default'] :
+                isset($this->pclConfig['external_intro'][$wgLanguageCode]) ?
+                    $this->pclConfig['external_intro'][$wgLanguageCode] :
+                    (isset($this->pclConfig['external_intro']['default']) ?
+                        $this->pclConfig['external_intro']['default'] :
                         wfMsg('external-pages-w-same-title')),
-                $this->config['external_sites_templates']
+                $this->pclConfig['external_sites_templates']
             )
         );
 
