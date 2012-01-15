@@ -55,7 +55,7 @@ $BADIConfig_PCL['Enabled_SkinTemplateToolboxEnd'] = true;
 // Template variables: {{CLASS}}, {{STYLES}}, {{LOCALIZED_LINK}}, {{LOCALIZED_TITLE}}
 // Fix: If necessary, the following three could be themselves localizable, though probably form would not change
 // Need not be changed
-$BADIConfig_PCL['external_site_templates'] = 
+$BADIConfig_PCL['external_site_templates'] =
     '<li><a class="{{CLASS}}" {{STYLES}} href="{{LOCALIZED_LINK}}">{{LOCALIZED_TITLE}}</a></li>'."\n";
 // Template variables: {{CURRENT_PAGE_TITLE}}, {{SITE_EDITING}}
 $BADIConfig_PCL['site_editing_templates'] = '{{SITE_EDITING}}{{CURRENT_PAGE_TITLE}}&action=edit';
@@ -115,7 +115,7 @@ $BADIConfig['User_content_linkbacks'] = array(
     'whitelist' => array(),
     'blacklist' => array()
 );
-    
+
 // Sends info when pages are created or deleted (or sends all pages if option enabled, if never sent before to that site, and if target site agrees or requests (confirm first that request is valid before notifying))
 $BADIConfig['Toolbox_linkbacks'] = array( // This is for admin-specified sites; can be separate toolbox for showing incoming linkbacks
     'check_preexisting_pages' => true,
@@ -134,15 +134,15 @@ class BADI_PagesCreatedLinks {
     protected $config;
     private $inserts;
     private $deletes;
-    
-    public function __construct ($config) {        
+
+    public function __construct ($config) {
         $this->config = $config;
         $this->pclConfig = &$this->config['pages_created_links'];
 
         $this->hook_setup();
-        
+
         if ($config['User_content_linkbacks']['check_preexisting_links']) {
-    
+
         }
     }
     private function hook_setup () {
@@ -153,20 +153,25 @@ class BADI_PagesCreatedLinks {
         // Add hook for our link adder (this is the portion that allows us to hook into Mediawiki without modifying its source code)
         $wgHooks['SkinTemplateToolboxEnd'][] = array(&$this, 'add_page_created_links'); // Defined as method below
         // $wgExtensionFunctions[] = 'ef_BADIPagesCreatedLinksSetup'; // Delays execution of a named function until after setup
-        
+
+        // Hooks defined as methods below
         if ($contentLinkbackConfig && $contentLinkbackConfig['live_enabled']) {
-            $wgHooks['LinksUpdate'][] = array(&$this, 'live_user_content_pingback'); // Defined as method below
-            $wgHooks['ArticleSaveComplete'][] = array(&$this, 'article_save_complete'); // Defined as method below
+            $wgHooks['LinksUpdate'][] = array(&$this, 'live_user_content_pingback');
+            $wgHooks['ArticleSaveComplete'][] = array(&$this, 'article_save_complete');
+            // Shaping class of links to indicate linkback status
+            $wgHooks['LinkerMakeExternalLink'][] = array(&$this, 'linker_make_external_link');
         }
         if ($toolboxLinkbackConfig && $toolboxLinkbackConfig['live_enabled']) {
-            $wgHooks['ArticleInsertComplete'][] = array(&$this, 'article_insert_complete'); // Defined as method below
-            $wgHooks['ArticleDeleteComplete'][] = array(&$this, 'article_delete_complete'); // Defined as method below        
+            $wgHooks['ArticleInsertComplete'][] = array(&$this, 'article_insert_complete');
+            $wgHooks['ArticleDeleteComplete'][] = array(&$this, 'article_delete_complete');
         }
     }
     // TODO
     public function article_insert_complete () {
     }
     public function article_delete_complete () {
+    }
+    public function linker_make_external_link () {
     }
     // PROBLEMS IF PUT THESE IN BODY
     /**
@@ -184,16 +189,19 @@ class BADI_PagesCreatedLinks {
 
         // Temporarily change context for the sake of get_headers() (Wikipedia, though not MediaWiki, disallows HEAD
         // requests without a user-agent specified)
-        stream_context_get_default(isset($this->pclConfig['stream_context']) ? 
-                    $this->pclConfig['stream_context'] : array(
-                      'http' => array(
+        stream_context_get_default(
+            isset($this->config['stream_context']) ?
+                $this->config['stream_context'] :
+                array(
+                    'http' => array(
                         'user_agent' => (
-                                                        isset($this->pclConfig['user-agent']) ?
-                                                            $this->pclConfig['user-agent'] :
-                                                            wfMsg('user-agent')
-                                                       )
-                      )
-        ));
+                            isset($this->config['user-agent']) ?
+                                $this->config['user-agent'] :
+                                wfMsg('user-agent')
+                            )
+                    )
+                )
+        );
         $headers = get_headers($url, 1);
 
         stream_context_get_default($defaultOpts); // Set it back to original value
@@ -323,10 +331,13 @@ class BADI_PagesCreatedLinks {
     * @param string $currentPage
     * @return resource
     */
-    private function process_refback ($inserted, $currentPage) {
+    protected function process_refback ($inserted, $currentPage) {
+
+        this->get_created_state_for_site();
+
         $errno = 0; $errstr = ''; $timeout = 15;
         $s = stream_socket_client($inserted.':80', $errno, $errstr, $timeout, // Use PHP5 method to ensure site gets visited without waiting
-            STREAM_CLIENT_ASYNC_CONNECT|STREAM_CLIENT_CONNECT, 
+            STREAM_CLIENT_ASYNC_CONNECT|STREAM_CLIENT_CONNECT,
             stream_context_create(
                 array(
                     'method'=>'GET',
@@ -344,23 +355,23 @@ class BADI_PagesCreatedLinks {
         $inserts = $this->inserts;
         $deletes = $this->deletes;
         $currentPage = $out->getFullURL(); // need this URL to serve as refback referrer
-        
+
         // Unlikely would want to allow users to add catbacks
         if (in_array('pingback', $this->config['User_content_linkbacks']['types'])) {
             foreach ($inserts as $insert=>$ignore) {
                 $this->config['User_content_linkbacks']['whitelist'])
                 $this->config['User_content_linkbacks']['blacklist'])
-                
+
             }
         }
         elseif (in_array('trackback', $this->config['User_content_linkbacks']['types'])) {
             foreach ($inserts as $insert=>$ignore) {
                 $this->config['User_content_linkbacks']['whitelist'])
                 $this->config['User_content_linkbacks']['blacklist'])
-                
+
             }
         }
-        
+
         // DELETIONS
         // If not enabling our special delete, we should avoid resending in case keeps being deleted and added back
         // Worth having server verify actually deleted (if trusted enough to add)
@@ -368,7 +379,7 @@ class BADI_PagesCreatedLinks {
             foreach ($deletes as $delete=>$ignore) {
                 $this->config['User_content_linkbacks']['whitelist'])
                 $this->config['User_content_linkbacks']['blacklist'])
-                
+
             }
         }
     }
@@ -399,16 +410,16 @@ class BADI_PagesCreatedLinks {
         //                   types might actually be able to save now and therefore quickly change link styling)
         $this->inserts = $inserts = array_diff_key( $out->mExternals, $existing ); // using keys for URL
         $this->deletes = $deletes = array_diff_key( $existing, $out->mExternals ); // using keys for URL
-        
+
         if (in_array('refback', $contentLinkbackConfig['types'])) {
-            if (!$contentLinkbackConfig['whitelist'] || 
+            if (!$contentLinkbackConfig['whitelist'] ||
                 !$contentLinkbackConfig['blacklist']) {
                 return false; // Useless if no whitelist or blacklist
             }
             foreach ($inserts as $inserted => $ignore) {
                 if ($contentLinkbackConfig['whitelist']) {
                     if (in_array(
-                        parse_url($inserted, PHP_URL_HOST), 
+                        parse_url($inserted, PHP_URL_HOST),
                         $contentLinkbackConfig['whitelist']
                         )
                     ) {
@@ -417,12 +428,12 @@ class BADI_PagesCreatedLinks {
                     // If not in array, do nothing and do not check blacklist
                 }
                 elseif (!in_array(
-                        parse_url($inserted, PHP_URL_HOST), 
+                        parse_url($inserted, PHP_URL_HOST),
                         $contentLinkbackConfig['blacklist']
                 ) {
                     $this->process_refback($inserted, $currentPage);
                 }
-            }        
+            }
         }
     }
 
