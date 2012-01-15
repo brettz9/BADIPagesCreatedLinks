@@ -159,11 +159,11 @@ class BADI_PagesCreatedLinks {
             $wgHooks['ArticleSaveComplete'][] = array(&$this, 'article_save_complete'); // Defined as method below
         }
         if ($toolboxLinkbackConfig && $toolboxLinkbackConfig['live_enabled']) {
-        // Check $config['Toolbox_linkbacks']
             $wgHooks['ArticleInsertComplete'][] = array(&$this, 'article_insert_complete'); // Defined as method below
             $wgHooks['ArticleDeleteComplete'][] = array(&$this, 'article_delete_complete'); // Defined as method below        
         }
     }
+    // TODO
     public function article_insert_complete () {
     }
     public function article_delete_complete () {
