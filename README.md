@@ -31,9 +31,9 @@ files as full configuration should be possible inside LocalSettings.php alone,
 also potentially allowing you to update to any future version of our extension
 with a minimum of hassle).
 
-# titles, sites, sites_editing:
+# Configuration
 
-These 3 properties are the most likely you will wish to modify (unless you only
+The following three properties are the most likely you will wish to modify (unless you only
 wish to link your pages to Wikipedia).
 
 Each of these properties is an array keyed to a language code (if you wish to
