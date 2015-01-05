@@ -17,6 +17,8 @@ of nested subforums (currently only the admins can do this I believe), we
 could also allow one to link to a specific discussion forum according to
 whether the forum of the same name had been started yet.)
 
+# Usage
+
 To use this extension, simply put the BADIPagesCreatedLinks folder containing
 our extension code inside your wiki's /extensions folder and include this
 line in your LocalSettings.php:
