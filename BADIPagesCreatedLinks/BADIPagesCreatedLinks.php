@@ -131,21 +131,26 @@ function badi_getCreatedStateForSite ($url) {
     global $wgBADIConfig;
 
     $cache = false;
+    $update = false;
+    $row = null;
+    $dbr = null;
+    $curr_time = null;
+    $table = 'ext_badipagescreatedlinks';
+
     if (!$wgBADIConfig['no_cache']) {
         $cache = true;
         $dbr = wfGetDB(DB_SLAVE);
-        $res = $dbr->select('ext_badipagescreatedlinks', array('remote_exists', 'checked_ts'), array('url' => $url), __FUNCTION__);
+        $res = $dbr->select($table, array('remote_exists', 'checked_ts'), array('url' => $url), __FUNCTION__);
         if ($res) {
             $row = $res->fetchRow();
             if ($row->remote_exists && $wgBADIConfig['cache_existing'] || !$row->remote_exists && $wgBADIConfig['cache_nonexisting']) {
                 $timeout = $row->remote_exists ? $wgBADIConfig['cache_existing_timeout'] : $wgBADIConfig['cache_nonexisting_timeout']
-                $wgBADIConfig['cache_existing'];
-                $wgBADIConfig['cache_nonexisting'];
+                
                 $curr_time = time();
-                if ($curr_time > ($row->checked_ts + $timeout)) {
-                    
+                if ($curr_time <= ($row->checked_ts + $timeout)) {
+                    return !!$row->remote_exists;
                 }
-                return $row->remote_exists;
+                $update = true;
             }
             else {
                 $cache = false;
@@ -174,8 +179,11 @@ function badi_getCreatedStateForSite ($url) {
 
     $oldPageExists = !!($headers['Last-Modified'] || (strpos($headers[0], '200') !== false));
     
-    if ($cache) { // Insert
-        $oldPageExists;
+    if ($update) {
+        $dbr->update($table, array('remote_exists' => $oldPageExists), array('id' => $row->id), __FUNCTION__);
+    }
+    else if ($cache) {
+        $dbr->insert($table, array('url' => $url, 'remote_exists' => $oldPageExists, 'checked_ts' => $curr_time), __FUNCTION__);
     }
     return $oldPageExists;
 }
