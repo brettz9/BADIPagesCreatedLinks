@@ -103,6 +103,17 @@ $wgBADIConfig['uncreatedLinkInlineStyles'] = ''; // e.g., 'font-style:italic';
 // $wgBADIConfig['user-agent'] = 'BADI Mediawiki page-created checker';
 // $wgBADIConfig['stream_context']; // Can be used if one needs to change more than the user-agent for the HTTP HEAD request
 // END USER AGENT
+
+
+// CACHING
+$wgBADIConfig['no_cache'] = false;
+$wgBADIConfig['cache_existing'] = true;
+$wgBADIConfig['cache_nonexisting'] = true;
+$wgBADIConfig['cache_existing_timeout'] = 31104000; // a year (12 * 30 * 24 * 60 * 60)
+$wgBADIConfig['cache_nonexisting_timeout'] = 2592000; // a month (30 * 24 * 60 * 60)
+
+// END CACHING
+
 //// END CONFIGURATION /////
 
 
@@ -118,6 +129,29 @@ $wgBADIConfig['uncreatedLinkInlineStyles'] = ''; // e.g., 'font-style:italic';
  */
 function badi_getCreatedStateForSite ($url) {
     global $wgBADIConfig;
+
+    $cache = false;
+    if (!$wgBADIConfig['no_cache']) {
+        $cache = true;
+        $dbr = wfGetDB(DB_SLAVE);
+        $res = $dbr->select('ext_badipagescreatedlinks', array('remote_exists', 'checked_ts'), array('url' => $url), __FUNCTION__);
+        if ($res) {
+            $row = $res->fetchRow();
+            if ($row->remote_exists && $wgBADIConfig['cache_existing'] || !$row->remote_exists && $wgBADIConfig['cache_nonexisting']) {
+                $timeout = $row->remote_exists ? $wgBADIConfig['cache_existing_timeout'] : $wgBADIConfig['cache_nonexisting_timeout']
+                $wgBADIConfig['cache_existing'];
+                $wgBADIConfig['cache_nonexisting'];
+                $curr_time = time();
+                if ($curr_time > ($row->checked_ts + $timeout)) {
+                    
+                }
+                return $row->remote_exists;
+            }
+            else {
+                $cache = false;
+            }
+        }
+    }
 
     // Store default options to be able to return back to them later (in case MediaWiki or other extensions will rely on it)
     $defaultOpts = stream_context_get_options(stream_context_get_default());
@@ -138,14 +172,19 @@ function badi_getCreatedStateForSite ($url) {
 
     stream_context_get_default($defaultOpts); // Set it back to original value
 
-    $oldPage = $headers['Last-Modified'] || (strpos($headers[0], '200') !== false);
-    return !!$oldPage;
+    $oldPageExists = !!($headers['Last-Modified'] || (strpos($headers[0], '200') !== false));
+    
+    if ($cache) { // Insert
+        $oldPageExists;
+    }
+    return $oldPageExists;
 }
 /*
  * Our starting hook function; adds links to the Toolbox according to a user-configurable and
  * localizable list of links and titles, and styles links differently depending on whether the link has been created
  * at the target site yet or not
  * @param {Object} $this Passed by Mediawiki (required)
+ * @returns {Boolean} Whether any links were added
  */
 function badi_addPageCreatedLinks ($out) {
 

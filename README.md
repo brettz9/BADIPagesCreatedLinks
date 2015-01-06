@@ -157,7 +157,39 @@ If you don't want links to appear while the user is in other namespaces, you can
 $wgBADIConfig['no_namespaces'] = true;
 ```
 
-As evident above, most of the configuration will be provided by the user, but our extension does support default values if one only wishes to link  to Wikipedia. This information as well as extension credits could be translated inside BADIPagesCreatedLinks.i18n.php (feel free to let us know if you write any localizations and we may include them).
+Finally, configuration has been added to allow caching. Caching is on by default, so to disable, add the following:
+
+```php
+$wgBADIConfig['no_cache'] = true;
+```
+
+One may wish to enable caching but only under certain circumstances. One can configure
+caching depending on whether a corresponding page exists at other sites or not.
+
+The following can change the default behavior to indicate that non-existent pages should not be
+cached (i.e., checks should be ongoing to see whether the page has been created).
+
+```php
+$wgBADIConfig['cache_nonexisting'] = false;
+```
+
+The following can change the default behavior to indicate that pages found to exist will not be cached.
+
+```php
+$wgBADIConfig['cache_existing'] = false;
+```
+
+Finally, the caching of pages found to exist or not exist are given separate timeouts. The
+following list the default settings, with the existing page timeout larger since it may
+be of less concern (if not likelihood) that an existing page was deleted as opposed to
+a page coming into existence.
+
+```php
+$wgBADIConfig['cache_existing_timeout'] = 31104000; // a year (12 * 30 * 24 * 60 * 60)
+$wgBADIConfig['cache_nonexisting_timeout'] = 2592000; // a month (30 * 24 * 60 * 60)
+```
+
+As evident above, most of the configuration will be provided by the user, but our extension does support default values if one only wishes to link to Wikipedia. This information as well as extension credits could be translated inside BADIPagesCreatedLinks.i18n.php (feel free to let us know if you write any localizations and we may include them).
 
 Warmest regards!
 BADI Developer Institute
