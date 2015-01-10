@@ -194,6 +194,11 @@ As evident above, most of the configuration will be provided by the user, but ou
 Warmest regards!
 BADI Developer Institute
 
+# Todos
+1. Test existing code
+1. Add method to call (by admin as needed) to reset existing cache (delete established dates)
+1. Add method to iterate (by admin as needed) through all existing pages to create a cache
+
 # Dedication
 
 This extension is dedicated to our Baha'i friends in Iran who, without
