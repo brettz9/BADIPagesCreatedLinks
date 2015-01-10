@@ -8,22 +8,23 @@
 // Information to display on Special:Version, as it is best practice to display information of all extensions installed
 //  in this manner
 $wgExtensionCredits['other'][] = array(
-	'path' => __FILE__, // File name for the extension itself, required for getting the revision number from SVN - string, adding in 1.15
-	'name' => 'BADI Pages Created Links', // Name of extension - string
-	'description' => 'Allows display of links in toolbox to other wiki or wiki-like sites whereby links will be colored differently '.
+    'path' => __FILE__, // File name for the extension itself, required for getting the revision number from SVN - string, adding in 1.15
+    'name' => 'BADI Pages Created Links', // Name of extension - string
+    'description' => 'Allows display of links in toolbox to other wiki or wiki-like sites whereby links will be colored differently '.
                                     'depending on whether the page there has been created yet or not. Status determined by '.
                                     'response code or Last-Modified HTTP HEAD requests.', // Description of what the extension does - string
-	'descriptionmsg' => 'badi-created-pages-desc', // Same as above but name of a message, for i18n - string, added in 1.12.0
-	'version' => 0.1, // Version number of extension - number or string
-	'author' => "BADI: Bahá'í/Badí Developers Institute (Brett Zamir)", // The extension author's name - string
-	'url' => 'http://groups.yahoo.com/group/badi', // URL of extension (usually instructions) - string
+    'descriptionmsg' => 'badi-created-pages-desc', // Same as above but name of a message, for i18n - string, added in 1.12.0
+    'version' => 0.1, // Version number of extension - number or string
+    'author' => "BADI: Bahá'í/Badí Developers Institute (Brett Zamir)", // The extension author's name - string
+    'url' => 'http://groups.yahoo.com/group/badi', // URL of extension (usually instructions) - string
 );
 
-// HOOK
+// HOOKS
 // Add hook for our link adder (this is the portion that allows us to hook into Mediawiki without modifying its source code)
 $wgHooks['SkinTemplateToolboxEnd'][] = 'badi_addPageCreatedLinks'; // Defined below
 // $wgExtensionFunctions[] = 'ef_BADIPagesCreatedLinksSetup'; // Delays execution of a named function until after setup
-
+// Add hook to create database table if not yet existing
+$wgHooks['LoadExtensionSchemaUpdates'][] = 'badi_addSchemaUpdates';
 
 // Load I18N
 $wgExtensionMessagesFiles['BADIPagesCreatedLinks'] = dirname( __FILE__ ) . '/BADIPagesCreatedLinks.i18n.php';
@@ -144,7 +145,7 @@ function badi_getCreatedStateForSite ($url) {
         if ($res) {
             $row = $res->fetchRow();
             if ($row->remote_exists && $wgBADIConfig['cache_existing'] || !$row->remote_exists && $wgBADIConfig['cache_nonexisting']) {
-                $timeout = $row->remote_exists ? $wgBADIConfig['cache_existing_timeout'] : $wgBADIConfig['cache_nonexisting_timeout']
+                $timeout = $row->remote_exists ? $wgBADIConfig['cache_existing_timeout'] : $wgBADIConfig['cache_nonexisting_timeout'];
                 
                 $curr_time = time();
                 if ($curr_time <= ($row->checked_ts + $timeout)) {
@@ -187,8 +188,33 @@ function badi_getCreatedStateForSite ($url) {
     }
     return $oldPageExists;
 }
+
+function badi_addSchemaUpdates ($updater = null) {
+    $table = 'ext_badipagescreatedlinks';
+    $base = dirname(__FILE__);
+
+    if ($updater === null) {
+        // <= 1.16 support
+        global $wgExtNewTables;
+        $wgExtNewTables[] = array($table, $base . '/' . $table . '.sql');
+    }
+    else {
+        // >= 1.17 support
+        switch ($updater->getDB()->getType()) {
+            case 'mysql':
+                $updater->addExtensionUpdate(array('addTable', $table,
+                    $base . '/' . $table . '.sql', true)); // Initially install tables
+                break;
+            default:
+                print "\nBADIPagesCreatedLinks currently does not support your database type\n\n";
+                break;
+        }
+    }
+    return true;
+}
+
 /*
- * Our starting hook function; adds links to the Toolbox according to a user-configurable and
+ * Our starting hook function after table creation; adds links to the Toolbox according to a user-configurable and
  * localizable list of links and titles, and styles links differently depending on whether the link has been created
  * at the target site yet or not
  * @param {Object} $this Passed by Mediawiki (required)
