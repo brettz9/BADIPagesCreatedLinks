@@ -200,4 +200,5 @@ make to civilization, if it will only be truly enabled to do so.
     adding an async job)
 1. Allow admin page to customize renames (have separate table column) or
     have renames specified as properties within (category) pages.
-1. Move to https://github.com/bahaidev when more functional
+1. Move to <https://github.com/bahaidev> when more functional and update
+    <https://www.mediawiki.org/wiki/Extension:BADI_Pages_Created_Links>.
