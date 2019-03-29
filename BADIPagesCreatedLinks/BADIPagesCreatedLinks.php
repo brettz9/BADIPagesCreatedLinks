@@ -4,40 +4,10 @@
 // or requiring some kind of formal API, using a HEAD request can allow a simple but effective way to know whether a
 // a specific page on another wiki site has been created already or not, and display this information to your users
 
-// SPECIAL:VERSION
-// Information to display on Special:Version, as it is best practice to display information of all extensions installed
-//  in this manner
-$wgExtensionCredits['other'][] = array(
-	'path' => __FILE__, // File name for the extension itself, required for getting the revision number from SVN - string, adding in 1.15
-	'name' => 'BADI Pages Created Links', // Name of extension - string
-	'description' => 'Allows display of links in toolbox to other wiki or wiki-like sites whereby links will be colored differently '.
-                                    'depending on whether the page there has been created yet or not. Status determined by '.
-                                    'response code or Last-Modified HTTP HEAD requests.', // Description of what the extension does - string
-	'descriptionmsg' => 'badi-created-pages-desc', // Same as above but name of a message, for i18n - string, added in 1.12.0
-	'version' => 0.1, // Version number of extension - number or string
-	'author' => "BADI: Bahá'í/Badí Developers Institute (Brett Zamir)", // The extension author's name - string
-	'url' => 'https://www.mediawiki.org/wiki/Extension:BADI_Pages_Created_Links', // URL of extension (usually instructions) - string
-);
-
 // HOOK
 // Add hook for our link adder (this is the portion that allows us to hook into Mediawiki without modifying its source code)
 $wgHooks['SkinTemplateToolboxEnd'][] = 'badi_addPageCreatedLinks'; // Defined below
 // $wgExtensionFunctions[] = 'ef_BADIPagesCreatedLinksSetup'; // Delays execution of a named function until after setup
-
-
-// Load I18N
-$wgExtensionMessagesFiles['BADIPagesCreatedLinks'] = dirname( __FILE__ ) . '/BADIPagesCreatedLinks.i18n.php';
-
-
-// BADI PAGE CREATED EXTENSION SETUP (do not change)
-
-$wgBADIConfig = array();
-$wgBADIConfig['sites'] = array();
-$wgBADIConfig['titles'] = array();
-$wgBADIConfig['external_intro'] = array();
-
-
-
 
 //// START DEFAULT CONFIGURATION /////
 // Although any of the following can (and probably should) be overridden in your LocalSettings.php, they should be
@@ -51,57 +21,45 @@ $wgBADIConfig['external_intro'] = array();
 // $wgBADIConfig['sites']['default'] = array('https://{{LANGUAGE}}.wikipedia.org/wiki/');
 // $wgBADIConfig['sites_editing']['default'] = array('https://{{LANGUAGE}}.wikipedia.org/w/index.php?title=');
 // $wgBADIConfig['external_intro']['default'] = ''; // See wfMsg('external-pages-w-same-title')
-//
-// Template variables: {{CLASS}}, {{STYLES}}, {{LOCALIZED_LINK}}, {{LOCALIZED_TITLE}}
-// Fix: If necessary, the following three could be themselves localizable, though probably form would not change
-// Need not be changed
-$wgBADIConfig['external_site_templates'] =
-    '<li><a class="{{CLASS}}" {{STYLES}} href="{{LOCALIZED_LINK}}">{{LOCALIZED_TITLE}}</a></li>'."\n";
-// Template variables: {{CURRENT_PAGE_TITLE}}, {{SITE_EDITING}}
-$wgBADIConfig['site_editing_templates'] = '{{SITE_EDITING}}{{CURRENT_PAGE_TITLE}}&action=edit';
+// The user could add the above site link arrays localized into other languages here
 
-// Template variables: {{SITE}}, {{CURRENT_PAGE_TITLE}}
-$wgBADIConfig['site_and_title_templates'] = '{{SITE}}{{CURRENT_PAGE_TITLE}}';
+// Fix: If necessary, the following three could be themselves localizable, though
+//   probably form would not change
+//
+// Template variables (Need not be changed):
+// `external_site_templates` - {{CLASS}}, {{STYLES}}, {{LOCALIZED_LINK}}, {{LOCALIZED_TITLE}}
+// `site_editing_templates` - {{CURRENT_PAGE_TITLE}}, {{SITE_EDITING}}
+// `site_and_title_templates` - {{SITE}}, {{CURRENT_PAGE_TITLE}}
 
 // END MARKUP
 
-//
-// The user could add the above site link arrays localized into other languages here
 // END LOCALIZATION
 
 
 // MARKUP
 // Created immediately before external sites header
-// Template variables: {{LOCALIZED_INTRO}}, {{LINK_ITEMS}}
-// Need not be changed
-$wgBADIConfig['external_sites_templates'] = <<<HERE
-    <li>{{LOCALIZED_INTRO}}
-        <ul>
-            {{LINK_ITEMS}}
-        </ul>
-    </li>
-HERE;
+//
+// Template variables (Need not be changed):
+// `external_sites_templates` - {{LOCALIZED_INTRO}}, {{LINK_ITEMS}}
 
 
 // CSS STYLING
 // Class names indicating whether a page has been created or not; relies on skin's own default pre-styled class names
 // This probably will not need to be hanged
-$wgBADIConfig['createdLinkClass'] = 'external';
-$wgBADIConfig['uncreatedLinkClass'] = 'new';
 
 // Leave blank unless you need specific inline styles (e.g., if you want to change the styles but don't want to
 //    find or add to a stylesheet)
 // Fix: make language dependent?
-$wgBADIConfig['createdLinkInlineStyles'] = ''; // e.g., font-weight:bold;
-$wgBADIConfig['uncreatedLinkInlineStyles'] = ''; // e.g., 'font-style:italic';
+// `createdLinkInlineStyles` -  e.g., font-weight:bold;
+// `uncreatedLinkInlineStyles` -e.g., font-style:italic;
 // END CSS STYLING
 
 
 // USER AGENT
 // Don't need to change (or even include); explicitly setting to empty string will get a HTTP 403 error from
 //   Wikipedia (but not custom Mediawiki apparently unless so configured)
-// $wgBADIConfig['user-agent'] = 'BADI Mediawiki page-created checker';
-// $wgBADIConfig['stream_context']; // Can be used if one needs to change more than the user-agent for the HTTP HEAD request
+// - `user-agent`
+// - `stream_context` - Can be used if one needs to change more than the user-agent for the HTTP HEAD request
 // END USER AGENT
 //// END CONFIGURATION /////
 
@@ -124,19 +82,22 @@ function badi_getCreatedStateForSite ($url) {
 
     // Temporarily change context for the sake of get_headers() (Wikipedia, though not MediaWiki, disallows HEAD
     // requests without a user-agent specified)
-    stream_context_get_default(isset($wgBADIConfig['stream_context']) ?
-                $wgBADIConfig['stream_context'] : array(
-                  'http' => array(
+    stream_context_set_default(
+        isset($wgBADIConfig['stream_context']) && count($wgBADIConfig['stream_context'])
+            ? $wgBADIConfig['stream_context']
+            : array(
+                'http' => array(
                     'user_agent' => (
-                                                    isset($wgBADIConfig['user-agent']) ?
-                                                        $wgBADIConfig['user-agent'] :
-                                                        wfMsg('user-agent')
-                                                   )
-                  )
-    ));
+                        isset($wgBADIConfig['user-agent'])
+                            ? $wgBADIConfig['user-agent']
+                            : wfMsg('user-agent')
+                    )
+                )
+            )
+    );
     $headers = get_headers($url, 1);
 
-    stream_context_get_default($defaultOpts); // Set it back to original value
+    stream_context_set_default($defaultOpts); // Set it back to original value
 
     $oldPage = $headers['Last-Modified'] || (strpos($headers[0], '200') !== false);
     return !!$oldPage;
@@ -249,6 +210,5 @@ function badi_addPageCreatedLinks ($out) {
 
     return true;
 }
-
 
 ?>

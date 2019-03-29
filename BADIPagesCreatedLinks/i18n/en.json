@@ -1,3 +1,4 @@
 {
-
+  "badicreatedpages-extensionname": "BADI Pages Created Links",
+  "badicreatedpages-desc": "Allows display of links in toolbox to other wiki or wiki-like sites whereby links will be colored differently depending on whether the page there has been detected to have been created yet or not. Status determined by response code or Last-Modified HTTP HEAD requests."
 }

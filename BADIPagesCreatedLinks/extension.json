@@ -1,3 +1,51 @@
 {
+  "manifest_version": 2,
+  "name": "BADIPages Created Links",
+  "namemsg": "badicreatedpages-extensionname",
+  "type": "other",
+  "author": [
+    "Brett Zamir"
+  ],
+  "version": "2.0.0",
+  "url": "https://www.mediawiki.org/wiki/Extension:BADI_Pages_Created_Links",
+  "descriptionmsg": "badicreatedpages-desc",
+  "license-name": "BSD-3-Clause",
+  "requires": {
+    "MediaWiki": ">= 1.31.1"
+  },
+  "MessagesDirs": {
+  	"BADIPages Created Links": [
+  		"i18n"
+  	]
+  },
+  "SpecialPages": {
 
+  },
+  "Hooks": {
+
+  },
+  "config": {
+    "BADIConfig": {
+      "value": {
+        "sites": {},
+        "titles": {},
+        "external_intro": {},
+        "external_site_templates": "<li><a class=\"{{CLASS}}\" {{STYLES}} href=\"{{LOCALIZED_LINK}}\">{{LOCALIZED_TITLE}}</a></li>\n",
+        "site_editing_templates": "{{SITE_EDITING}}{{CURRENT_PAGE_TITLE}}&action=edit",
+        "site_and_title_templates": "{{SITE}}{{CURRENT_PAGE_TITLE}}",
+
+        "external_sites_templates": "\n<li>{{LOCALIZED_INTRO}}\n\t<ul>\n\t\t{{LINK_ITEMS}}\n\t</ul>\n</li>\n",
+
+        "createdLinkClass": "external",
+        "uncreatedLinkClass": "new",
+
+        "createdLinkInlineStyles": "",
+        "uncreatedLinkInlineStyles": "",
+
+        "user-agent": "BADI Mediawiki page-created checker",
+        "stream_context": {}
+
+      }
+    }
+  }
 }
