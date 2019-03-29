@@ -7,10 +7,11 @@ $wgCacheDirectory = false;
 */
 
 /*
- * Utility to determine whether a page is created already (false if not); relies on
- * built-in PHP function, get_headers(), which makes a quick HEAD request and
- * which we use to obtain its Last-Modified header; if it exists, it has been created
- * already, and if not, it has not yet been created
+ * Utility to determine whether a page is created already (false if not);
+ * relies on built-in PHP function, `get_headers()`, which makes a quick
+ * HEAD request and which we use to obtain its `Last-Modified` header; if
+ * it exists, it has been created already, and if not, it has not yet been
+ * created.
  * @private
  * @param {String} The URL of the site to detect
  * @returns {Boolean} Whether or not the page has been created
@@ -28,11 +29,20 @@ function badi_getCreatedStateForSite ($url) {
     if (!$wgBADIConfig['no_cache']) {
         $cache = true;
         $dbr = wfGetDB(DB_SLAVE);
-        $res = $dbr->select($table, ['remote_exists', 'checked_ts'], ['url' => $url], __FUNCTION__);
+        $res = $dbr->select(
+            $table,
+            ['remote_exists', 'checked_ts'],
+            ['url' => $url],
+            __FUNCTION__
+        );
         if ($res) {
             $row = $res->fetchRow();
-            if ($row->remote_exists && $wgBADIConfig['cache_existing'] || !$row->remote_exists && $wgBADIConfig['cache_nonexisting']) {
-                $timeout = $row->remote_exists ? $wgBADIConfig['cache_existing_timeout'] : $wgBADIConfig['cache_nonexisting_timeout'];
+            if ($row->remote_exists && $wgBADIConfig['cache_existing'] ||
+                !$row->remote_exists && $wgBADIConfig['cache_nonexisting']
+            ) {
+                $timeout = $row->remote_exists
+                    ? $wgBADIConfig['cache_existing_timeout']
+                    : $wgBADIConfig['cache_nonexisting_timeout'];
 
                 $curr_time = time();
                 if ($curr_time <= ($row->checked_ts + $timeout)) {
@@ -54,7 +64,8 @@ function badi_getCreatedStateForSite ($url) {
     //  (Wikipedia, though not MediaWiki, disallows HEAD requests
     //  without a user-agent specified)
     stream_context_set_default(
-        isset($wgBADIConfig['stream_context']) && count($wgBADIConfig['stream_context'])
+        isset($wgBADIConfig['stream_context']) &&
+          count($wgBADIConfig['stream_context'])
             ? $wgBADIConfig['stream_context']
             : [
                 'http' => [
@@ -70,7 +81,8 @@ function badi_getCreatedStateForSite ($url) {
 
     stream_context_set_default($defaultOpts); // Set it back to original value
 
-    $oldPageExists = !!($headers['Last-Modified'] || (strpos($headers[0], '200') !== false));
+    $oldPageExists = !!($headers['Last-Modified'] ||
+        (strpos($headers[0], '200') !== false));
     if ($update) {
         $dbr->update(
             $table,
@@ -148,7 +160,11 @@ function badi_addPageCreatedLinks ($out) {
         //  case one can define an array exclusively as 'default'
         //  which is our fallback)
         $site = str_replace('{{LANGUAGE}}', $wgLanguageCode, $badi_sites[$i]);
-        $site_editing = str_replace('{{LANGUAGE}}', $wgLanguageCode, $badi_sites_editing[$i]);
+        $site_editing = str_replace(
+            '{{LANGUAGE}}',
+            $wgLanguageCode,
+            $badi_sites_editing[$i]
+        );
 
         $siteTitle = $badi_titles[$i];
         $siteWithTitle = str_replace(
@@ -226,11 +242,16 @@ function badi_onLoadExtensionSchemaUpdates ($updater = null) {
 
     switch ($updater->getDB()->getType()) {
         case 'mysql':
-            $updater->addExtensionUpdate(['addTable', $table,
-                $base . '/' . $table . '.sql', true]); // Initially install tables
+            $updater->addExtensionUpdate([
+                'addTable',
+                $table,
+                $base . '/' . $table . '.sql',
+                true
+            ]); // Initially install tables
             break;
         default:
-            print "\nBADIPagesCreatedLinks currently does not support your database type\n\n";
+            echo "\nBADIPagesCreatedLinks currently does not " +
+                  "support your database type\n\n";
             break;
     }
     return true;
