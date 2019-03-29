@@ -1,6 +1,6 @@
 {
   "manifest_version": 2,
-  "name": "BADIPages Created Links",
+  "name": "BADIPagesCreatedLinks",
   "namemsg": "badicreatedpages-extensionname",
   "type": "other",
   "author": [
@@ -14,7 +14,7 @@
     "MediaWiki": ">= 1.31.1"
   },
   "MessagesDirs": {
-  	"BADIPages Created Links": [
+  	"BADIPagesCreatedLinks": [
   		"i18n"
   	]
   },

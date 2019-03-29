@@ -17,10 +17,10 @@ $wgHooks['SkinTemplateToolboxEnd'][] = 'badi_addPageCreatedLinks'; // Defined be
 
 // These three arrays must have the same number of items
 // For most Mediawiki sites, will need to ensure there is a slash at the end of the links
-// $wgBADIConfig['titles']['default'] = array('Wikipedia');
-// $wgBADIConfig['sites']['default'] = array('https://{{LANGUAGE}}.wikipedia.org/wiki/');
-// $wgBADIConfig['sites_editing']['default'] = array('https://{{LANGUAGE}}.wikipedia.org/w/index.php?title=');
-// $wgBADIConfig['external_intro']['default'] = ''; // See wfMsg('external-pages-w-same-title')
+// $wgBADIConfig['titles']['default'] = ['Wikipedia'];
+// $wgBADIConfig['sites']['default'] = ['https://{{LANGUAGE}}.wikipedia.org/wiki/'];
+// $wgBADIConfig['sites_editing']['default'] = ['https://{{LANGUAGE}}.wikipedia.org/w/index.php?title='];
+// $wgBADIConfig['external_intro']['default'] = ''; // See wfMessage('external-pages-w-same-title')
 // The user could add the above site link arrays localized into other languages here
 
 // Fix: If necessary, the following three could be themselves localizable, though
@@ -37,10 +37,7 @@ $wgHooks['SkinTemplateToolboxEnd'][] = 'badi_addPageCreatedLinks'; // Defined be
 
 
 // MARKUP
-// Created immediately before external sites header
 //
-// Template variables (Need not be changed):
-// `external_sites_templates` - {{LOCALIZED_INTRO}}, {{LINK_ITEMS}}
 
 
 // CSS STYLING
@@ -85,15 +82,15 @@ function badi_getCreatedStateForSite ($url) {
     stream_context_set_default(
         isset($wgBADIConfig['stream_context']) && count($wgBADIConfig['stream_context'])
             ? $wgBADIConfig['stream_context']
-            : array(
-                'http' => array(
+            : [
+                'http' => [
                     'user_agent' => (
                         isset($wgBADIConfig['user-agent'])
                             ? $wgBADIConfig['user-agent']
-                            : wfMsg('user-agent')
+                            : wfMessage('user-agent')
                     )
-                )
-            )
+                ]
+            ]
     );
     $headers = get_headers($url, 1);
 
@@ -127,19 +124,18 @@ function badi_addPageCreatedLinks ($out) {
                                 $wgBADIConfig['sites'][$wgLanguageCode] :
                                 (isset($wgBADIConfig['sites']['default']) ? // Allow user to set own default
                                     $wgBADIConfig['sites']['default'] :
-                                    wfMsg('sites')); // Finally, if none specified at all, use our default
+                                    [wfMessage('site')]); // Finally, if none specified at all, use our default
 
     $badi_sites_editing = isset($wgBADIConfig['sites_editing'][$wgLanguageCode]) ?
                                                     $wgBADIConfig['sites_editing'][$wgLanguageCode] :
                                                     (isset($wgBADIConfig['sites_editing']['default']) ? // Allow user to set own default
                                                             $wgBADIConfig['sites_editing']['default'] :
-                                                            wfMsg('sites_editing')); // Finally, if none specified at all, use our default
+                                                            [wfMessage('site_editing')]); // Finally, if none specified at all, use our default
     $badi_titles = isset($wgBADIConfig['titles'][$wgLanguageCode]) ?
                                     $wgBADIConfig['titles'][$wgLanguageCode] :
                                     (isset($wgBADIConfig['titles']['default']) ?  // Allow user to set own default
                                         $wgBADIConfig['titles']['default'] :
-                                        wfMsg('titles')); // Finally, if none specified at all, use our default
-
+                                        [wfMessage('title')]); // Finally, if none specified at all, use our default
 
     for ($i = 0, $link_items = '', $len = count($badi_sites); $i < $len; $i++) {
         if ($badi_sites[$i] == null) { // If the site is explicitly unspecified for the given language (or default), ignore it
@@ -203,7 +199,7 @@ function badi_addPageCreatedLinks ($out) {
                 $wgBADIConfig['external_intro'][$wgLanguageCode] :
                 (isset($wgBADIConfig['external_intro']['default']) ?
                     $wgBADIConfig['external_intro']['default'] :
-                    wfMsg('external-pages-w-same-title')),
+                    wfMessage('external-pages-w-same-title')),
             $wgBADIConfig['external_sites_templates']
         )
     );

@@ -18,14 +18,14 @@ of nested subforums (currently only the admins can do this I believe), we
 could also allow one to link to a specific discussion forum according to
 whether the forum of the same name had been started yet.)
 
-# Usage
+## Usage
 
 To use this extension, simply put the BADIPagesCreatedLinks folder containing
 our extension code inside your wiki's /extensions folder and include this
 line in your LocalSettings.php:
 
 ```php
-    require_once($IP.'/extensions/BADIPagesCreatedLinks/BADIPagesCreatedLinks.php');
+wfLoadExtension('BADIPagesCreatedLinks');
 ```
 
 After this line, you can then optionally use any of the $wgBADIConfig
@@ -34,7 +34,9 @@ files as full configuration should be possible inside LocalSettings.php alone,
 also potentially allowing you to update to any future version of our extension
 with a minimum of hassle).
 
-# Configuration
+## Configuration
+
+### `titles`, `sites`, `sites_editing`
 
 The following three properties are the most likely you will wish to modify
 (unless you only wish to link your pages to Wikipedia).
@@ -45,10 +47,10 @@ turn lead to an array of values, respectively:
 
 1. ***titles***: site title
 2. ***sites***: a template for the base URL for when the page has already been
-    created. {{LANGUAGE}}, if present, will be replaced by the current
+    created. `{{LANGUAGE}}`, if present, will be replaced by the current
     language code.
 3. ***sites_editing***: a template for the base URL for when the page has not
-    yet been created and will be edited. {{LANGUAGE}}, if present, will be
+    yet been created and will be edited. `{{LANGUAGE}}`, if present, will be
     replaced by the current language code.
 
 "default" can be used in place of a language to indicate the default values
@@ -71,9 +73,15 @@ $wgBADIConfig['sites_editing']['en'] = array('https://{{LANGUAGE}}.wikipedia.org
 An item in a "sites" language array can be set to NULL if a link should not be
 generated for that particular language.
 
+### Markup config
+
 Although it is not necessary to change the default values, this extension
-also allows you to configure the  structure for the markup that will be
+also allows you to configure the structure for the markup that will be
 produced.
+
+The markup config is built immediately before the external sites header.
+
+#### `external_sites_templates`
 
 The template for configuring the entire block that will be added
 as a whole is "external_sites_templates:
@@ -88,33 +96,35 @@ $wgBADIConfig['external_sites_templates'] = <<<HERE
 HERE;
 ```
 
-It allows two variables, the first being "{{LOCALIZED_INTRO}}" which is
-merely the introductory text for the links and "{{LINK_ITEMS}}" which are
+It allows two variables, the first being `{{LOCALIZED_INTRO}}` which is
+merely the introductory text for the links and `{{LINK_ITEMS}}` which are
 the individual line items containing the links.
 
-Each individual line item also has a temploate, "external_site_templates":
+#### `external_site_templates` (and `createdLinkInlineStyles`/`uncreatedLinkInlineStyles` and `createdLinkClass`/`uncreatedLinkClass`)
+
+Each individual line item also has a template, "external_site_templates":
 
 ```php
     $wgBADIConfig['external_site_templates'] =
         '<li><a class="{{CLASS}}" {{STYLES}} href="{{LOCALIZED_LINK}}">{{LOCALIZED_TITLE}}</a></li>'."\n";
 ```
 
-The template variable "{{CLASS}}" will be determined according to whether
+The template variable `{{CLASS}}` will be determined according to whether
 the page has been created yet or not. (The default values will either be
 "external" or "new"--see below.)
 
-The template variable "{{STYLES}}" can allow inline styling information for
+The template variable `{{STYLES}}` can allow inline styling information for
 convenient styling of individual links, also sensitive to whether the page
 has been created yet or not.
 
 These can be added via:
 
 ```php
-    $wgBADIConfig['createdLinkInlineStyles'] = ''; // e.g., font-weight:bold;
-    $wgBADIConfig['uncreatedLinkInlineStyles'] = ''; // e.g., 'font-style:italic';
+$wgBADIConfig['createdLinkInlineStyles'] = ''; // e.g., font-weight:bold;
+$wgBADIConfig['uncreatedLinkInlineStyles'] = ''; // e.g., 'font-style:italic';
 ```
 
-Note, however, that the {{CLASS}} variable is really a better choice
+Note, however, that the `{{CLASS}}` variable is really a better choice
 as it allows control from an external stylesheet and can take advantage
 of the already-familiar styling differences within Mediawiki
 as far as external (which we interpret here as already-created) links or
@@ -132,25 +142,31 @@ $wgBADIConfig['uncreatedLinkClass'] = 'new';
 ```
 
 It is also possible, though probably not necessary for most people, to
-configure the link  structure for both already-created links and new links.
+configure the link structure for both already-created links and new links.
 If there is interest, we could change the code to make these differ by
 language and/or site.
 
-The variable {{SITE}} will be replaced by the base URL for an already created
-external page, while {{CURRENT_PAGE_TITLE}} will be replaced by the current
+#### `site_and_title_templates`
+
+The variable `{{SITE}}` will be replaced by the base URL for an already created
+external page, while `{{CURRENT_PAGE_TITLE}}` will be replaced by the current
 wiki page's title:
 
 ```php
 $wgBADIConfig['site_and_title_templates'] = '{{SITE}}{{CURRENT_PAGE_TITLE}}';
 ```
 
-Similarly for links to entirely new (yet to be created) pages, {{SITE_EDITING}}
-will be replaced byt he base URL for such a page, while {{CURRENT_PAGE_TITLE}}
+#### `site_editing_templates`
+
+Similarly for links to entirely new (yet to be created) pages, `{{SITE_EDITING}}`
+will be replaced byt he base URL for such a page, while `{{CURRENT_PAGE_TITLE}}`
 will be replaced by the current wiki page's title:
 
 ```php
 $wgBADIConfig['site_editing_templates'] = '{{SITE_EDITING}}{{CURRENT_PAGE_TITLE}}&action=edit';
 ```
+
+#### `no_namespaces`
 
 If you don't want links to appear while the user is in other namespaces, you can set this setting:
 
@@ -158,23 +174,23 @@ If you don't want links to appear while the user is in other namespaces, you can
 $wgBADIConfig['no_namespaces'] = true;
 ```
 
-As evident above, most of the configuration will be provided by the user, but
-our extension does support default values if one only wishes to link to
-Wikipedia. This information as well as extension credits could be translated
-inside BADIPagesCreatedLinks.i18n.php (feel free to let us know if you write
-any localizations and we may include them).
+### Defaulting and i18n
 
-Warmest regards!
-BADI Developer Institute
+As evident above, most of the configuration will be provided by the user
+(as far as content and external wiki site links), but our extension does
+support default values if one only wishes to link to Wikipedia. This
+information as well as extension credits could be translated
+inside `BADIPagesCreatedLinks/i18n/en.json` (feel free to let us know if you
+write any localizations and we may include them).
 
-# Dedication
+## Dedication
 
 This extension is dedicated to our Baha'i friends in Iran who, without
 responding in kind, but on the contrary, who persevere in demonstrating their
 loyalty and services to their communities and country, despite the
 government-sponsored persecution so insidiously leagued against them
 (including a denial of education itself! not to mention jobs, pensions,
-and businesses and other abuses or harrassment, even of poor school children).
+and businesses and other abuses or harassment, even of poor school children).
 No doubt Iran as a whole will return to its prior glories as soon as it
 stops its patently false propaganda, trumped up charges and imprisonments,
 and becomes concerned with elevating the status of all of its citizens,
@@ -185,7 +201,7 @@ who are moreover loyal to its authority! Is there any excuse for such
 backwards behavior? Iran no doubt has yet greater contributions to
 make to civilization, if it will only be truly enabled to do so.
 
-# To-dos
+## To-dos
 
 1. Review old incomplete `caching` branch for ideas
 1. Update to modern extension format (e.g., JSON config)
@@ -208,6 +224,6 @@ make to civilization, if it will only be truly enabled to do so.
 1. Allow admin page to customize renames (have separate table column) or
     have renames specified as properties within (category) pages.
 1. Update <https://www.mediawiki.org/wiki/Extension:BADI_Pages_Created_Links>
-    when more functional.
+    when more functional, if necessary forwarding to `BADIPagesCreatedLinks`.
 1. Reconsider and possibly integrate `BADIPingback` branch (pingbacks,
     trackbacks, refbacks, and the callback linkback
