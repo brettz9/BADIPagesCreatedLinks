@@ -28,7 +28,7 @@ function badi_getCreatedStateForSite ($url) {
     if (!$wgBADIConfig['no_cache']) {
         $cache = true;
         $dbr = wfGetDB(DB_SLAVE);
-        $res = $dbr->select($table, array('remote_exists', 'checked_ts'), array('url' => $url), __FUNCTION__);
+        $res = $dbr->select($table, ['remote_exists', 'checked_ts'], ['url' => $url], __FUNCTION__);
         if ($res) {
             $row = $res->fetchRow();
             if ($row->remote_exists && $wgBADIConfig['cache_existing'] || !$row->remote_exists && $wgBADIConfig['cache_nonexisting']) {
@@ -45,7 +45,7 @@ function badi_getCreatedStateForSite ($url) {
             }
         }
     }
-                
+
     // Store default options to be able to return back to them
     //  later (in case MediaWiki or other extensions will rely on it)
     $defaultOpts = stream_context_get_options(stream_context_get_default());
@@ -72,10 +72,19 @@ function badi_getCreatedStateForSite ($url) {
 
     $oldPageExists = !!($headers['Last-Modified'] || (strpos($headers[0], '200') !== false));
     if ($update) {
-        $dbr->update($table, array('remote_exists' => $oldPageExists), array('id' => $row->id), __FUNCTION__);
+        $dbr->update(
+            $table,
+            ['remote_exists' => $oldPageExists],
+            ['id' => $row->id],
+            __FUNCTION__
+        );
     }
     else if ($cache) {
-        $dbr->insert($table, array('url' => $url, 'remote_exists' => $oldPageExists, 'checked_ts' => $curr_time), __FUNCTION__);
+        $dbr->insert($table, [
+            'url' => $url,
+            'remote_exists' => $oldPageExists,
+            'checked_ts' => $curr_time
+        ], __FUNCTION__);
     }
     return $oldPageExists;
 }
@@ -215,22 +224,14 @@ function badi_onLoadExtensionSchemaUpdates ($updater = null) {
     $table = 'ext_badipagescreatedlinks';
     $base = dirname(__FILE__);
 
-    if ($updater === null) {
-        // <= 1.16 support
-        global $wgExtNewTables;
-        $wgExtNewTables[] = array($table, $base . '/' . $table . '.sql');
-    }
-    else {
-        // >= 1.17 support
-        switch ($updater->getDB()->getType()) {
-            case 'mysql':
-                $updater->addExtensionUpdate(array('addTable', $table,
-                    $base . '/' . $table . '.sql', true)); // Initially install tables
-                break;
-            default:
-                print "\nBADIPagesCreatedLinks currently does not support your database type\n\n";
-                break;
-        }
+    switch ($updater->getDB()->getType()) {
+        case 'mysql':
+            $updater->addExtensionUpdate(['addTable', $table,
+                $base . '/' . $table . '.sql', true]); // Initially install tables
+            break;
+        default:
+            print "\nBADIPagesCreatedLinks currently does not support your database type\n\n";
+            break;
     }
     return true;
 }
