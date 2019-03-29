@@ -238,14 +238,14 @@ function badi_addPageCreatedLinks ($out) {
 
 function badi_onLoadExtensionSchemaUpdates ($updater = null) {
     $table = 'ext_badipagescreatedlinks';
-    $base = dirname(__FILE__);
+    $base = dirname(__FILE__) . DIRECTORY_SEPARATOR . 'sql' . DIRECTORY_SEPARATOR;
 
     switch ($updater->getDB()->getType()) {
         case 'mysql':
             $updater->addExtensionUpdate([
                 'addTable',
                 $table,
-                $base . '/' . $table . '.sql',
+                $base . DIRECTORY_SEPARATOR . $table . '.sql',
                 true
             ]); // Initially install tables
             break;
