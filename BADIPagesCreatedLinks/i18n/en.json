@@ -7,5 +7,5 @@
 
   "title": "Wikipedia",
   "site": "https://{{LANGUAGE}}.wikipedia.org/wiki/",
-  "site_editing": "https://{{LANGUAGE}}.wikipedia.org/w/index.php?title="
+  "site-editing": "https://{{LANGUAGE}}.wikipedia.org/w/index.php?title="
 }

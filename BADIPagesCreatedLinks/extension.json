@@ -22,29 +22,39 @@
 
   },
   "Hooks": {
-
+    "BaseTemplateToolbox": "badi_addPageCreatedLinks",
+    "LoadExtensionSchemaUpdates": "badi_onLoadExtensionSchemaUpdates"
   },
   "config": {
     "BADIConfig": {
       "value": {
-        "sites": {},
         "titles": {},
-        "external_intro": {},
-        "external_site_templates": "<li><a class=\"{{CLASS}}\" {{STYLES}} href=\"{{LOCALIZED_LINK}}\">{{LOCALIZED_TITLE}}</a></li>\n",
-        "site_editing_templates": "{{SITE_EDITING}}{{CURRENT_PAGE_TITLE}}&action=edit",
-        "site_and_title_templates": "{{SITE}}{{CURRENT_PAGE_TITLE}}",
+        "sites": {},
+        "sites_editing": {},
 
+        "external_intro": {},
         "external_sites_templates": "\n<li>{{LOCALIZED_INTRO}}\n\t<ul>\n\t\t{{LINK_ITEMS}}\n\t</ul>\n</li>\n",
 
+        "external_site_templates": "<li><a class=\"{{CLASS}}\" {{STYLES}} href=\"{{LOCALIZED_LINK}}\">{{LOCALIZED_TITLE}}</a></li>\n",
+        "createdLinkInlineStyles": "",
+        "uncreatedLinkInlineStyles": "",
         "createdLinkClass": "external",
         "uncreatedLinkClass": "new",
 
-        "createdLinkInlineStyles": "",
-        "uncreatedLinkInlineStyles": "",
+        "site_and_title_templates": "{{SITE}}{{CURRENT_PAGE_TITLE}}",
+        "site_editing_templates": "{{SITE_EDITING}}{{CURRENT_PAGE_TITLE}}&action=edit",
+
+        "no_namespaces": false,
 
         "user-agent": "BADI Mediawiki page-created checker",
-        "stream_context": {}
+        "stream_context": {},
 
+
+        "no_cache": false,
+        "cache_existing": true,
+        "cache_nonexisting": true,
+        "cache_existing_timeout": 31104000,
+        "cache_nonexisting_timeout": 2592000
       }
     }
   }

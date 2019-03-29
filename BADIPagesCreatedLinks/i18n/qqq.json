@@ -1,0 +1,11 @@
+{
+  "badicreatedpages-extensionname": "Long localized name of the extension",
+  "badicreatedpages-desc": "Description of this extension",
+
+  "external-pages-w-same-title": "Intro to the external pages section",
+  "user-agent": "User agent string",
+
+  "title": "Title of default site for the locale (Wikipedia)",
+  "site": "(Wikipedia) URL format to which to link by default for the locale when viewing.",
+  "site-editing": "(Wikipedia) URL format to which to link by default for the locale when editing."
+}
