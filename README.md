@@ -1,7 +1,7 @@
 # BADIPagesCreatedLinks
 
 The BADI Pages Created Links extension for Mediawiki
-([Mediawiki page](http://www.mediawiki.org/wiki/Extension:BADI_Pages_Created_Links))
+([Mediawiki page](https://www.mediawiki.org/wiki/Extension:BADI_Pages_Created_Links))
 allows display of links in one's Mediawiki toolbox area which lead to
 other wiki or wiki-like sites
 whereby links will be colored differently depending on whether the page there
@@ -60,12 +60,12 @@ in the URL:
 
 ```php
 $wgBADIConfig['titles']['default'] = array('Wikipedia', 'Bahaikipedia');
-$wgBADIConfig['sites']['default'] = array('http://{{LANGUAGE}}.wikipedia.org/wiki/', 'http://{{LANGUAGE}}.bahaikipedia.org/');
-$wgBADIConfig['sites_editing']['default'] = array('http://{{LANGUAGE}}.wikipedia.org/w/index.php?title=', 'http://{{LANGUAGE}}.bahaikipedia.org/index.php?title=');
+$wgBADIConfig['sites']['default'] = array('https://{{LANGUAGE}}.wikipedia.org/wiki/', 'https://{{LANGUAGE}}.bahaikipedia.org/');
+$wgBADIConfig['sites_editing']['default'] = array('https://{{LANGUAGE}}.wikipedia.org/w/index.php?title=', 'https://{{LANGUAGE}}.bahaikipedia.org/index.php?title=');
 
 $wgBADIConfig['titles']['en'] = array('Wikipedia', 'Bahaikipedia');
-$wgBADIConfig['sites']['en'] = array('http://{{LANGUAGE}}.wikipedia.org/wiki/', 'http://bahaikipedia.org/');
-$wgBADIConfig['sites_editing']['en'] = array('http://{{LANGUAGE}}.wikipedia.org/w/index.php?title=', 'http://bahaikipedia.org/index.php?title=');
+$wgBADIConfig['sites']['en'] = array('https://{{LANGUAGE}}.wikipedia.org/wiki/', 'https://bahaikipedia.org/');
+$wgBADIConfig['sites_editing']['en'] = array('https://{{LANGUAGE}}.wikipedia.org/w/index.php?title=', 'https://bahaikipedia.org/index.php?title=');
 ```
 
 An item in a "sites" language array can be set to NULL if a link should not be

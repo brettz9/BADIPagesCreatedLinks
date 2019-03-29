@@ -5,7 +5,7 @@
 // language, there is no need for extension localization beyond our own credits
 
 
-// See http://www.mediawiki.org/wiki/Internationalisation re: plurals, etc.
+// See https://www.mediawiki.org/wiki/Internationalisation re: plurals, etc.
 $messages = array(); // Params via $1, $2, $3, etc.
 
 $messages['en'] = array(
@@ -19,8 +19,8 @@ $messages['en'] = array(
     'external-pages-w-same-title' => 'External pages with same title: ',
     'user-agent' => 'BADI Mediawiki page-created checker',
     'titles' => array('Wikipedia'),
-    'sites' => array('http://{{LANGUAGE}}.wikipedia.org/wiki/'),
-    'sites_editing' => array('http://{{LANGUAGE}}.wikipedia.org/w/index.php?title=')
+    'sites' => array('https://{{LANGUAGE}}.wikipedia.org/wiki/'),
+    'sites_editing' => array('https://{{LANGUAGE}}.wikipedia.org/w/index.php?title=')
 );
 
 ?>

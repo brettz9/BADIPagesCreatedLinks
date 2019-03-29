@@ -16,7 +16,7 @@ $wgExtensionCredits['other'][] = array(
 	'descriptionmsg' => 'badi-created-pages-desc', // Same as above but name of a message, for i18n - string, added in 1.12.0
 	'version' => 0.1, // Version number of extension - number or string
 	'author' => "BADI: Bahá'í/Badí Developers Institute (Brett Zamir)", // The extension author's name - string
-	'url' => 'http://groups.yahoo.com/group/badi', // URL of extension (usually instructions) - string
+	'url' => 'https://www.mediawiki.org/wiki/Extension:BADI_Pages_Created_Links', // URL of extension (usually instructions) - string
 );
 
 // HOOK
@@ -48,14 +48,14 @@ $wgBADIConfig['external_intro'] = array();
 // These three arrays must have the same number of items
 // For most Mediawiki sites, will need to ensure there is a slash at the end of the links
 // $wgBADIConfig['titles']['default'] = array('Wikipedia');
-// $wgBADIConfig['sites']['default'] = array('http://{{LANGUAGE}}.wikipedia.org/wiki/');
-// $wgBADIConfig['sites_editing']['default'] = array('http://{{LANGUAGE}}.wikipedia.org/w/index.php?title=');
+// $wgBADIConfig['sites']['default'] = array('https://{{LANGUAGE}}.wikipedia.org/wiki/');
+// $wgBADIConfig['sites_editing']['default'] = array('https://{{LANGUAGE}}.wikipedia.org/w/index.php?title=');
 // $wgBADIConfig['external_intro']['default'] = ''; // See wfMsg('external-pages-w-same-title')
 //
 // Template variables: {{CLASS}}, {{STYLES}}, {{LOCALIZED_LINK}}, {{LOCALIZED_TITLE}}
 // Fix: If necessary, the following three could be themselves localizable, though probably form would not change
 // Need not be changed
-$wgBADIConfig['external_site_templates'] = 
+$wgBADIConfig['external_site_templates'] =
     '<li><a class="{{CLASS}}" {{STYLES}} href="{{LOCALIZED_LINK}}">{{LOCALIZED_TITLE}}</a></li>'."\n";
 // Template variables: {{CURRENT_PAGE_TITLE}}, {{SITE_EDITING}}
 $wgBADIConfig['site_editing_templates'] = '{{SITE_EDITING}}{{CURRENT_PAGE_TITLE}}&action=edit';
@@ -124,7 +124,7 @@ function badi_getCreatedStateForSite ($url) {
 
     // Temporarily change context for the sake of get_headers() (Wikipedia, though not MediaWiki, disallows HEAD
     // requests without a user-agent specified)
-    stream_context_get_default(isset($wgBADIConfig['stream_context']) ? 
+    stream_context_get_default(isset($wgBADIConfig['stream_context']) ?
                 $wgBADIConfig['stream_context'] : array(
                   'http' => array(
                     'user_agent' => (
