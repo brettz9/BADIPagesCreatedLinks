@@ -182,9 +182,9 @@ make to civilization, if it will only be truly enabled to do so.
 
 # To-dos
 
-- Cache!
+1. Cache!
   - https://www.mediawiki.org/wiki/Manual:Developing_extensions
   - https://www.mediawiki.org/wiki/Manual:Hooks/LoadExtensionSchemaUpdates
   - https://www.mediawiki.org/wiki/Database_field_prefixes (to avoid name clashes)
   - https://www.mediawiki.org/wiki/Manual:Database_access (to query)
-- Allow admin page to customize renames
+1. Allow admin page to customize renames
