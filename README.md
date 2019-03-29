@@ -1,6 +1,7 @@
 # BADIPagesCreatedLinks
 
-The BADI Pages Created Links extension for Mediawiki ([Mediawiki page](http://www.mediawiki.org/wiki/Extension:BADI_Pages_Created_Links))
+The BADI Pages Created Links extension for Mediawiki
+([Mediawiki page](http://www.mediawiki.org/wiki/Extension:BADI_Pages_Created_Links))
 allows display of links in one's Mediawiki toolbox area which lead to
 other wiki or wiki-like sites
 whereby links will be colored differently depending on whether the page there
@@ -35,8 +36,8 @@ with a minimum of hassle).
 
 # Configuration
 
-The following three properties are the most likely you will wish to modify (unless you only
-wish to link your pages to Wikipedia).
+The following three properties are the most likely you will wish to modify
+(unless you only wish to link your pages to Wikipedia).
 
 Each of these properties is an array keyed to a language code (if you wish to
 provide language-specific link information) or to the word "default" which in
@@ -46,8 +47,8 @@ turn lead to an array of values, respectively:
 2. ***sites***: a template for the base URL for when the page has already been
     created. {{LANGUAGE}}, if present, will be replaced by the current
     language code.
-3. ***sites_editing***: a template for the base URL for when the page has not yet
-    been created and will be edited. {{LANGUAGE}}, if present, will be
+3. ***sites_editing***: a template for the base URL for when the page has not
+    yet been created and will be edited. {{LANGUAGE}}, if present, will be
     replaced by the current language code.
 
 "default" can be used in place of a language to indicate the default values
@@ -157,7 +158,11 @@ If you don't want links to appear while the user is in other namespaces, you can
 $wgBADIConfig['no_namespaces'] = true;
 ```
 
-As evident above, most of the configuration will be provided by the user, but our extension does support default values if one only wishes to link  to Wikipedia. This information as well as extension credits could be translated inside BADIPagesCreatedLinks.i18n.php (feel free to let us know if you write any localizations and we may include them).
+As evident above, most of the configuration will be provided by the user, but
+our extension does support default values if one only wishes to link to
+Wikipedia. This information as well as extension credits could be translated
+inside BADIPagesCreatedLinks.i18n.php (feel free to let us know if you write
+any localizations and we may include them).
 
 Warmest regards!
 BADI Developer Institute
