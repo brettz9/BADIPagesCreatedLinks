@@ -198,6 +198,7 @@ make to civilization, if it will only be truly enabled to do so.
   - <https://www.mediawiki.org/wiki/Manual:Database_access (to query)
   - <https://www.mediawiki.org/wiki/Manual:Job_queue/For_developers> (for
     adding an async job)
+1. Allow more precise namespace config (whitelist or blacklist)
 1. Allow admin page to customize renames (have separate table column) or
     have renames specified as properties within (category) pages.
 1. Move to <https://github.com/bahaidev> when more functional and update
