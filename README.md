@@ -182,9 +182,14 @@ make to civilization, if it will only be truly enabled to do so.
 
 # To-dos
 
-1. Cache!
-  - https://www.mediawiki.org/wiki/Manual:Developing_extensions
-  - https://www.mediawiki.org/wiki/Manual:Hooks/LoadExtensionSchemaUpdates
-  - https://www.mediawiki.org/wiki/Database_field_prefixes (to avoid name clashes)
-  - https://www.mediawiki.org/wiki/Manual:Database_access (to query)
-1. Allow admin page to customize renames
+1. Cache! (add to async queue); until cache obtained, show as external
+    link. Also need to have task to recheck orange link(s).
+  - <https://www.mediawiki.org/wiki/Manual:Developing_extensions>
+  - <https://www.mediawiki.org/wiki/Manual:Hooks/LoadExtensionSchemaUpdates>
+  - <https://www.mediawiki.org/wiki/Database_field_prefixes> (to avoid name
+    clashes)
+  - <https://www.mediawiki.org/wiki/Manual:Database_access (to query)
+  - <https://www.mediawiki.org/wiki/Manual:Job_queue/For_developers> (for
+    adding an async job)
+1. Allow admin page to customize renames (have separate table column) or
+    have renames specified as properties within (category) pages.
