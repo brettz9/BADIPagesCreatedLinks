@@ -187,6 +187,7 @@ make to civilization, if it will only be truly enabled to do so.
 
 # To-dos
 
+1. Review old incomplete `caching` branch for ideas
 1. Update to modern extension format (e.g., JSON config)
 1. Cache! (add to async queue); until cache obtained, show as external
     link. Also need to have task to recheck orange link(s), preferably
@@ -205,3 +206,5 @@ make to civilization, if it will only be truly enabled to do so.
     <https://www.mediawiki.org/wiki/Extension:BADI_Pages_Created_Links>;
     then also remove from <https://github.com/bahaidev/resources/wiki>
     as will no longer be an individual project.
+1. Reconsider and possibly integrate `BADIPingback` branch (pingbacks,
+    trackbacks, refbacks, and the callback linkback
