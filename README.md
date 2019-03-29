@@ -183,7 +183,8 @@ make to civilization, if it will only be truly enabled to do so.
 # To-dos
 
 1. Cache! (add to async queue); until cache obtained, show as external
-    link. Also need to have task to recheck orange link(s).
+    link. Also need to have task to recheck orange link(s), preferably
+    activatable from admin page or a specific (category) page itself.
   - <https://www.mediawiki.org/wiki/Manual:Developing_extensions>
   - <https://www.mediawiki.org/wiki/Manual:Hooks/LoadExtensionSchemaUpdates>
   - <https://www.mediawiki.org/wiki/Database_field_prefixes> (to avoid name
