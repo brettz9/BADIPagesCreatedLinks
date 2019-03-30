@@ -29,8 +29,8 @@ SET time_zone = "+00:00";
 CREATE TABLE IF NOT EXISTS `ext_badipagescreatedlinks` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `url` text NOT NULL,
-  `remote_exists` tinyint(1) NOT NULL,
-  `checked_timestamp` timestamp NOT NULL,
+  `remote_status` ENUM('existing', 'missing', 'checking', 'erred') NOT NULL,
+  `last_checked` timestamp NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `url` (`url`(100))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;

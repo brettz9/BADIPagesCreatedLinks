@@ -130,22 +130,22 @@ class BADIPagesCreatedLinks {
       $dbr = wfGetDB(DB_SLAVE);
       $res = $dbr->select(
         $table,
-        ['remote_exists', 'checked_timestamp'],
+        ['remote_status', 'last_checked'],
         ['url' => $url],
         __METHOD__
       );
       if ($res) {
         $row = $res->fetchRow();
-        if ($row->remote_exists && $wgBADIConfig['cache_existing'] ||
-          !$row->remote_exists && $wgBADIConfig['cache_nonexisting']
+        if ($row->remote_status === 'existing' && $wgBADIConfig['cache_existing'] ||
+          $row->remote_status !== 'existing' && $wgBADIConfig['cache_nonexisting']
         ) {
-          $timeout = $row->remote_exists
+          $timeout = $row->remote_status === 'existing'
             ? $wgBADIConfig['cache_existing_timeout']
             : $wgBADIConfig['cache_nonexisting_timeout'];
 
           $curr_time = time();
-          if ($curr_time <= ($row->checked_timestamp + $timeout)) {
-            return !!$row->remote_exists;
+          if ($curr_time <= ($row->last_checked + $timeout)) {
+            return $row->remote_status === 'existing';
           }
           $update = true;
         }
@@ -177,18 +177,23 @@ class BADIPagesCreatedLinks {
         ]
     );
 
+    // Todo: With a debugging flag, we could update the database to
+    //    "checking" `remote_status` for the URL, but don't need the
+    //    performance hit.
     // $title = $article->getTitle();
     // CheckBADIPagesCreatedLinks::queue($title);
     $headers = get_headers($url, 1);
 
     stream_context_set_default($defaultOpts); // Set it back to original value
 
+    // Todo: Distinguish codes to add "erred" `remote_status`
     $oldPageExists = !!($headers['Last-Modified'] ||
       (strpos($headers[0], '200') !== false));
+
     if ($update) {
       $dbr->update(
         $table,
-        ['remote_exists' => $oldPageExists],
+        ['remote_status' => $oldPageExists ? 'existing' : 'missing'],
         ['id' => $row->id],
         __METHOD__
       );
@@ -196,8 +201,8 @@ class BADIPagesCreatedLinks {
     else if ($cache) {
       $dbr->insert($table, [
         'url' => $url,
-        'remote_exists' => $oldPageExists,
-        'checked_timestamp' => $curr_time
+        'remote_status' => $oldPageExists ? 'existing' : 'missing',
+        'last_checked' => $curr_time
       ], __METHOD__);
     }
     return $oldPageExists;
