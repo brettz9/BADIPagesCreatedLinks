@@ -34,7 +34,7 @@ class JobQueuer extends Job {
    * @param array $jobParams Set any job parameters you want to have available when your job runs
    *    Can also be an empty array.
    *    These values will be available to your job via `$this->params['param_name']`
-   *    e.g., `$jobParams = [ 'limit' => $limit, 'cascade' => true ];`
+   *    e.g., `$jobParams = ['limit' => $limit, 'cascade' => true];`
    * @param string $title The article title that the job will use when running
    *    Adds unique ID by default; useful for creating several batch jobs with
    *      the same base title.
@@ -90,13 +90,12 @@ class CheckBADIPagesCreatedLinks extends JobQueuer {
 	 */
 	public function run() {
 		// Load data from $this->params and $this->title
-    $articleTitle = $this->params['articleTitle'];
     $wgBADIConfig = $this->params['wgBADIConfig;'];
-		$article = new Article($articleTitle, 0);
-
-		if ($article) {
-			// checkLinks($article, $articleTitle);
-		}
+    $url = $this->params['url'];
+    $rowID = $this->params['row_id'];
+    $cache = $this->params['cache'];
+    $update = $this->params['update'];
+    $currTime = $this->params['curr_time'];
 
     // Store default options to be able to return back to them
     //  later (in case MediaWiki or other extensions will rely on it)
@@ -129,11 +128,12 @@ class CheckBADIPagesCreatedLinks extends JobQueuer {
       (strpos($headers[0], '200') !== false));
     $createdState = $oldPageExists ? 'existing' : 'missing';
 
+    $dbr = wfGetDB(DB_SLAVE);
     if ($update) {
       $dbr->update(
         $table,
         ['remote_status' => $createdState],
-        ['id' => $row->id],
+        ['id' => $rowID],
         __METHOD__
       );
     }
@@ -141,7 +141,7 @@ class CheckBADIPagesCreatedLinks extends JobQueuer {
       $dbr->insert($table, [
         'url' => $url,
         'remote_status' => $createdState,
-        'last_checked' => $curr_time
+        'last_checked' => $currTime
       ], __METHOD__);
     }
 
@@ -170,18 +170,16 @@ class BADIPagesCreatedLinks {
    * it exists, it has been created already, and if not, it has not yet been
    * created.
    * @private
-   * @param string $articleTitle The namespace-prefixed, underscored title of
-   *   the current article
    * @param string $url The URL of the site to detect
    * @param array $wgBADIConfig The extension config object
    * @return string `["existing"|"missing"|"checking"|"erred"]` Created state of the page
    */
-  private static function getCreatedStateForSite ($articleTitle, $url, $wgBADIConfig) {
+  private static function getCreatedStateForSite ($url, $wgBADIConfig) {
     $cache = false;
     $update = false;
-    $row = null;
-    $dbr = null;
-    $curr_time = null;
+    $rowID = null;
+    $currTime = null;
+
     $table = 'ext_badipagescreatedlinks';
 
     if (!$wgBADIConfig['no_cache']) {
@@ -195,6 +193,7 @@ class BADIPagesCreatedLinks {
       );
       if ($res) {
         $row = $res->fetchRow();
+        $rowID = $row->id;
         if ($row->remote_status === 'existing' && $wgBADIConfig['cache_existing'] ||
           $row->remote_status !== 'existing' && $wgBADIConfig['cache_nonexisting']
         ) {
@@ -202,8 +201,8 @@ class BADIPagesCreatedLinks {
             ? $wgBADIConfig['cache_existing_timeout']
             : $wgBADIConfig['cache_nonexisting_timeout'];
 
-          $curr_time = time();
-          if ($curr_time <= ($row->last_checked + $timeout)) {
+          $currTime = time();
+          if ($currTime <= ($row->last_checked + $timeout)) {
             return $row->remote_status;
           }
           $update = true;
@@ -218,8 +217,12 @@ class BADIPagesCreatedLinks {
       CheckBADIPagesCreatedLinks::queue([
         // Not sure if global is available during jobs, so saving a
         //   local copy
+        'url' => $url,
         'wgBADIConfig' => $wgBADIConfig,
-        'articleTitle' => $articleTitle
+        'cache' => $cache,
+        'update' => $update,
+        'row_id' => $rowID,
+        'curr_time' => $currTime
       ]);
       return 'pending';
     }
@@ -245,6 +248,7 @@ class BADIPagesCreatedLinks {
       $wgBADIConfig; // Ok as still recommended way
 
     $currentPageTitleObj = $baseTemplate->getSkin()->getTitle();
+    // The namespace-prefixed, underscored title of the current article
     $currentPageTitle = $currentPageTitleObj->getPrefixedDBKey();
     $titleNamespace = $currentPageTitleObj->getNamespace();
 
@@ -316,7 +320,9 @@ class BADIPagesCreatedLinks {
 
       // Might allow defining inline styles for easier
       // though less ideal configuration
-      $createdState = self::getCreatedStateForSite($currentPageTitle, $siteWithTitle, $wgBADIConfig);
+      $createdState = self::getCreatedStateForSite(
+        $siteWithTitle, $wgBADIConfig
+      );
       $created = $createdState === 'existing';
       $uncreated = $createdState === 'missing';
       $pending = $createdState === 'pending';
