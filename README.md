@@ -279,7 +279,7 @@ make to civilization, if it will only be truly enabled to do so.
 
 1. Cache, adding to async queue
     1. Until cache obtained, show as external link
-1. Means to recheck links
+1. Means to recheck links, adding desired links to check to queue
     1. Preferably activatable from admin page and/or a specific
         (category) page itself
     1. Link types
