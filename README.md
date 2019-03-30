@@ -7,7 +7,7 @@ other wiki or wiki-like sites whereby links will be colored differently
 depending on whether the page there has been created yet or not.
 
 The status of whether it was created yet or not is determined by
-`Last-Modified` or `HTTP 200` `HEAD` requests.
+`Last-Modified` on `HTTP 200` `HEAD` requests.
 
 ## Use cases
 
