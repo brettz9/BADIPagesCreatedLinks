@@ -16,7 +16,7 @@ $wgCacheDirectory = false;
  * @param array $subject
  * @return string
  */
-function str_replace_assoc(array $replace, $subject) {
+function str_replace_assoc (array $replace, $subject) {
    return str_replace(array_keys($replace), array_values($replace), $subject);
 }
 
@@ -27,7 +27,7 @@ class JobQueuer extends Job {
    * @param string $title
    * @param array $params
    */
-  public function __construct($id, $title, $params) {
+  public function __construct ($id, $title, $params) {
 		parent::__construct($id, $title, $params);
 	}
   /**
@@ -80,7 +80,7 @@ class JobQueuer extends Job {
  * @see https://www.mediawiki.org/wiki/Manual:Job_queue/For_developers
  */
 class CheckBADIPagesCreatedLinks extends JobQueuer {
-  public function __construct($title, $params) {
+  public function __construct ($title, $params) {
 		parent::__construct('checkBADIPagesCreatedLinks', $title, $params);
 	}
   /**
@@ -88,7 +88,7 @@ class CheckBADIPagesCreatedLinks extends JobQueuer {
 	 *
 	 * @return boolean
 	 */
-	public function run() {
+	public function run () {
 		// Load data from $this->params and $this->title
     $wgBADIConfig = $this->params['wgBADIConfig;'];
     $url = $this->params['url'];
@@ -147,6 +147,13 @@ class CheckBADIPagesCreatedLinks extends JobQueuer {
 
 		return true;
 	}
+
+  /**
+   *
+   * @param array $params
+   * @param string $type
+   * @param string $ns
+   */
   public static function queue (
     $params,
     $type = 'CheckLinks',
