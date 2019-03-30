@@ -113,7 +113,7 @@ class BADIPagesCreatedLinks {
    * created.
    * @private
    * @param {String} url The URL of the site to detect
-   * @returns {Boolean} Whether or not the page has been created
+   * @returns {"existing"|"missing"|"checking"|"erred"} Created state of the page
    */
   private static function getCreatedStateForSite ($url) {
     global $wgBADIConfig;
@@ -145,7 +145,7 @@ class BADIPagesCreatedLinks {
 
           $curr_time = time();
           if ($curr_time <= ($row->last_checked + $timeout)) {
-            return $row->remote_status === 'existing';
+            return $row->remote_status;
           }
           $update = true;
         }
@@ -189,11 +189,12 @@ class BADIPagesCreatedLinks {
     // Todo: Distinguish codes to add "erred" `remote_status`
     $oldPageExists = !!($headers['Last-Modified'] ||
       (strpos($headers[0], '200') !== false));
+    $createdState = $oldPageExists ? 'existing' : 'missing';
 
     if ($update) {
       $dbr->update(
         $table,
-        ['remote_status' => $oldPageExists ? 'existing' : 'missing'],
+        ['remote_status' => $createdState],
         ['id' => $row->id],
         __METHOD__
       );
@@ -201,11 +202,11 @@ class BADIPagesCreatedLinks {
     else if ($cache) {
       $dbr->insert($table, [
         'url' => $url,
-        'remote_status' => $oldPageExists ? 'existing' : 'missing',
+        'remote_status' => $createdState,
         'last_checked' => $curr_time
       ], __METHOD__);
     }
-    return $oldPageExists;
+    return $createdState;
   }
   /*
    * Our starting hook function after table creation; adds links to the
@@ -283,18 +284,29 @@ class BADIPagesCreatedLinks {
       );
       // Might allow defining inline styles for easier
       // though less ideal configuration
-      $created = self::getCreatedStateForSite($siteWithTitle);
+      $createdState = self::getCreatedStateForSite($siteWithTitle);
+      $created = $createdState === 'existing';
+      $uncreated = $createdState === 'missing';
+      $pending = $createdState === 'pending';
+      // $erred = $createdState === 'erred';
 
       $class = $created
         ? $wgBADIConfig['createdLinkClass']
-        : $wgBADIConfig['uncreatedLinkClass'];
+        : $uncreated
+          ? $wgBADIConfig['uncreatedLinkClass']
+          : $pending
+            ? $wgBADIConfig['pendingLinkClass']
+            : $wgBADIConfig['erredLinkClass'];
       $styles = $created
         ? $wgBADIConfig['createdLinkInlineStyles']
-        : $wgBADIConfig['uncreatedLinkInlineStyles'];
+        : $uncreated
+          ? $wgBADIConfig['uncreatedLinkInlineStyles']
+          : $pending
+            ? $wgBADIConfig['pendingLinkInlineStyles']
+            : $wgBADIConfig['erredLinkInlineStyles'];
 
-      $siteWithTitle = $created
-        ? $siteWithTitle
-        : str_replace(
+      $siteWithTitle = $uncreated
+        ? str_replace(
           '{{CURRENT_PAGE_TITLE}}',
           $currentPageTitle,
           str_replace(
@@ -302,7 +314,8 @@ class BADIPagesCreatedLinks {
             $site_editing,
             $wgBADIConfig['site_editing_templates']
           )
-        );
+        )
+        : $siteWithTitle;
 
       $link_items .= str_replace(
         '{{LOCALIZED_TITLE}}',
