@@ -10,22 +10,32 @@ $wgMainCacheType = CACHE_NONE;
 $wgCacheDirectory = false;
 */
 
+/**
+ *
+ * @param array $replace
+ * @param array $subject
+ * @return string
+ */
+function str_replace_assoc(array $replace, $subject) {
+   return str_replace(array_keys($replace), array_values($replace), $subject);
+}
+
 class JobQueuer extends Job {
   /**
    * `Job` constructor only has 2 arguments
-   * @param $id
-   * @param $title
-   * @param $params
+   * @param string $id
+   * @param string $title
+   * @param array $params
    */
   public function __construct($id, $title, $params) {
 		parent::__construct($id, $title, $params);
 	}
   /**
-   * @param jobParams Set any job parameters you want to have available when your job runs
+   * @param array $jobParams Set any job parameters you want to have available when your job runs
    *    Can also be an empty array.
    *    These values will be available to your job via `$this->params['param_name']`
    *    e.g., `$jobParams = [ 'limit' => $limit, 'cascade' => true ];`
-   * @param title The article title that the job will use when running
+   * @param string $title The article title that the job will use when running
    *    Adds unique ID by default; useful for creating several batch jobs with
    *      the same base title.
    *    The idea is for the db to have a title reference that will be used by your
@@ -54,11 +64,11 @@ class JobQueuer extends Job {
    * For performance reasons, if you plan on inserting several jobs
    * into the queue, it’s best to add them to a single array and
    * then push them all at once into the queue
-   * @param {Array} jobSet Has different titles and jobParams
+   * @param array $jobSet Has different titles and jobParams
    */
   public static function queueArray ($jobSet) {
     $jobs = [];
-    foreach ($jobInfo as $jobSet) {
+    foreach ($jobSet as $jobInfo) {
       $jobs[] = new self($jobInfo->title, $jobInfo->jobParams);
     }
     JobQueueGroup::singleton()->push($jobs);
@@ -76,7 +86,7 @@ class CheckBADIPagesCreatedLinks extends JobQueuer {
   /**
 	 * Execute the job
 	 *
-	 * @return bool
+	 * @return boolean
 	 */
 	public function run() {
 		// Load data from $this->params and $this->title
@@ -153,15 +163,16 @@ class CheckBADIPagesCreatedLinks extends JobQueuer {
 }
 
 class BADIPagesCreatedLinks {
-  /*
+  /**
    * Utility to determine whether a page is created already (false if not);
    * relies on built-in PHP function, `get_headers()`, which makes a quick
    * HEAD request and which we use to obtain its `Last-Modified` header; if
    * it exists, it has been created already, and if not, it has not yet been
    * created.
    * @private
-   * @param {String} url The URL of the site to detect
-   * @returns {"existing"|"missing"|"checking"|"erred"} Created state of the page
+   * @param string $url The URL of the site to detect
+   * @param array $wgBADIConfig The extension config object
+   * @return string `["existing"|"missing"|"checking"|"erred"]` Created state of the page
    */
   private static function getCreatedStateForSite ($url, $wgBADIConfig) {
     $cache = false;
@@ -205,7 +216,7 @@ class BADIPagesCreatedLinks {
       // $title = $article->getTitle();
       CheckBADIPagesCreatedLinks::queue([
         // Not sure if global is available during jobs, so saving a local copy
-        'wgBADIConfig' -> $wgBADIConfig,
+        'wgBADIConfig' => $wgBADIConfig,
         'articleTitle' => $articleTitle
       ]);
       return 'pending';
@@ -213,22 +224,23 @@ class BADIPagesCreatedLinks {
     // Todo: Call `run()`
     return;
   }
-  /*
+  /**
    * Our starting hook function after table creation; adds links to the
    * Toolbox according to a user-configurable and localizable list of
    * links and titles, and styles links differently depending on whether
    * the link has been created at the target site yet or not
-   * @param {Object} $this Passed by Mediawiki (required)
-   * @returns {Boolean} Whether any links were added
+   * @param BaseTemplate $baseTemplate
+   * @param array $toolbox Passed by reference
+   * @return boolean Whether any links were added
    */
    public static function addPageCreatedLinks (BaseTemplate $baseTemplate, array &$toolbox) {
     // GET LOCALE MESSAGES
     wfLoadExtensionMessages('BADIPagesCreatedLinks');
 
-    global $wgLanguageCode, $wgBADIConfig;
+    global $wgLanguageCode, // Ok as not deprecated
+      $wgBADIConfig; // Ok as still recommended way
 
     $currentPageTitleObj = $baseTemplate->getSkin()->getTitle();
-
     $currentPageTitle = $currentPageTitleObj->getPrefixedDBKey();
     $titleNamespace = $currentPageTitleObj->getNamespace();
 
@@ -273,17 +285,18 @@ class BADIPagesCreatedLinks {
         // Finally, if none specified at all, use our default
         : [wfMessage('title')->escaped()]);
 
-    for ($i = 0, $link_items = '', $len = count($badi_sites); $i < $len; $i++) {
+    $link_items = '';
+    foreach ($badi_sites as $i => $badi_site) {
       // If the site is explicitly unspecified for the given language
       //   (or default), ignore it
-      if ($badi_sites[$i] == null) {
+      if ($badi_site == null) {
         continue;
       }
 
       // Let user be able to dynamically determine URL (in this
       //  case one can define an array exclusively as 'default'
       //  which is our fallback)
-      $site = str_replace('{{LANGUAGE}}', $wgLanguageCode, $badi_sites[$i]);
+      $site = str_replace('{{LANGUAGE}}', $wgLanguageCode, $badi_site);
       $site_editing = str_replace(
         '{{LANGUAGE}}',
         $wgLanguageCode,
@@ -291,15 +304,12 @@ class BADIPagesCreatedLinks {
       );
 
       $siteTitle = $badi_titles[$i];
-      $siteWithTitle = str_replace(
-        '{{SITE}}',
-        $site,
-        str_replace(
-          '{{CURRENT_PAGE_TITLE}}',
-          $currentPageTitle,
-          $wgBADIConfig['site_and_title_templates']
-        )
-      );
+
+      $siteWithTitle = str_replace_assoc([
+        '{{CURRENT_PAGE_TITLE}}' => $currentPageTitle,
+        '{{SITE}}' => $site
+      ], $wgBADIConfig['site_and_title_templates']);
+
       // Might allow defining inline styles for easier
       // though less ideal configuration
       $createdState = self::getCreatedStateForSite($siteWithTitle, $wgBADIConfig);
@@ -324,53 +334,34 @@ class BADIPagesCreatedLinks {
             : $wgBADIConfig['erredLinkInlineStyles'];
 
       $siteWithTitle = $uncreated
-        ? str_replace(
-          '{{CURRENT_PAGE_TITLE}}',
-          $currentPageTitle,
-          str_replace(
-            '{{SITE_EDITING}}',
-            $site_editing,
-            $wgBADIConfig['site_editing_templates']
-          )
-        )
+        ? str_replace_assoc([
+            '{{SITE_EDITING}}' => $site_editing,
+            '{{CURRENT_PAGE_TITLE}}' => $currentPageTitle
+        ], $wgBADIConfig['site_editing_templates'])
         : $siteWithTitle;
 
-      $link_items .= str_replace(
-        '{{LOCALIZED_TITLE}}',
-        $siteTitle,
-        str_replace(
-          '{{LOCALIZED_LINK}}',
-          $siteWithTitle,
-          str_replace(
-            '{{CLASS}}',
-            $class,
-            str_replace(
-              '{{STYLES}}',
-              isset($styles) ? 'style="'.($styles).'"' : '',
-              $wgBADIConfig['external_site_templates']
-            )
-          )
-        )
-      );
+      $link_items .= str_replace_assoc([
+        '{{STYLES}}' => isset($styles) ? 'style="'.($styles).'"' : '',
+        '{{CLASS}}' => $class,
+        '{{LOCALIZED_LINK}}' => $siteWithTitle,
+        '{{LOCALIZED_TITLE}}' => $siteTitle
+      ], $wgBADIConfig['external_site_templates']);
     }
     if ($link_items === '') {
       return false;
     }
 
     // Todo: Any other way to write than directly using `echo`?
-    echo str_replace(
-      '{{LINK_ITEMS}}',
-      $link_items,
-      str_replace(
-        '{{LOCALIZED_INTRO}}',
-        isset($wgBADIConfig['external_intro'][$wgLanguageCode]) ?
-          $wgBADIConfig['external_intro'][$wgLanguageCode] :
-          (isset($wgBADIConfig['external_intro']['default']) ?
-            $wgBADIConfig['external_intro']['default'] :
-            wfMessage('external-pages-w-same-title')->plain()),
-        $wgBADIConfig['external_sites_templates']
-      )
-    );
+    echo str_replace_assoc([
+      '{{LOCALIZED_INTRO}}' => isset(
+          $wgBADIConfig['external_intro'][$wgLanguageCode]
+        )
+          ? $wgBADIConfig['external_intro'][$wgLanguageCode]
+          : (isset($wgBADIConfig['external_intro']['default']) ?
+              $wgBADIConfig['external_intro']['default'] :
+              wfMessage('external-pages-w-same-title')->plain()),
+      '{{LINK_ITEMS}}' => $link_items
+    ], $wgBADIConfig['external_sites_templates']);
     return true;
   }
 
