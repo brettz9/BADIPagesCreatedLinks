@@ -170,11 +170,13 @@ class BADIPagesCreatedLinks {
    * it exists, it has been created already, and if not, it has not yet been
    * created.
    * @private
+   * @param string $articleTitle The namespace-prefixed, underscored title of
+   *   the current article
    * @param string $url The URL of the site to detect
    * @param array $wgBADIConfig The extension config object
    * @return string `["existing"|"missing"|"checking"|"erred"]` Created state of the page
    */
-  private static function getCreatedStateForSite ($url, $wgBADIConfig) {
+  private static function getCreatedStateForSite ($articleTitle, $url, $wgBADIConfig) {
     $cache = false;
     $update = false;
     $row = null;
@@ -213,7 +215,6 @@ class BADIPagesCreatedLinks {
       // Todo: With a debugging flag, we could update the database to
       //    "checking" `remote_status` for the URL, but don't need the
       //    performance hit.
-      // $title = $article->getTitle();
       CheckBADIPagesCreatedLinks::queue([
         // Not sure if global is available during jobs, so saving a
         //   local copy
@@ -315,7 +316,7 @@ class BADIPagesCreatedLinks {
 
       // Might allow defining inline styles for easier
       // though less ideal configuration
-      $createdState = self::getCreatedStateForSite($siteWithTitle, $wgBADIConfig);
+      $createdState = self::getCreatedStateForSite($currentPageTitle, $siteWithTitle, $wgBADIConfig);
       $created = $createdState === 'existing';
       $uncreated = $createdState === 'missing';
       $pending = $createdState === 'pending';
