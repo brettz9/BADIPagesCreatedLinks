@@ -290,8 +290,7 @@ make to civilization, if it will only be truly enabled to do so.
 
 ## Immediate to-dos
 
-1. Cache, adding to async queue
-    1. Until cache obtained, show as external link
+1. Test caching/queue
 1. Means to recheck links, adding desired links to check to queue
     1. Preferably activatable from admin page and/or a specific
         (category) page itself
