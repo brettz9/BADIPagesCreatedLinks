@@ -278,13 +278,14 @@ make to civilization, if it will only be truly enabled to do so.
 ## Immediate to-dos
 
 1. Cache, adding to async queue
-    1. Until cache obtained, show as external link.
-1. Task to recheck links
-    1. Preferably activatable from admin page or a specific (category) page itself
-    1. Types
-        1. orange links
-        1. blue links (which may have since been deleted).
-        1. all links in the entire wiki, not just the cache table.
+    1. Until cache obtained, show as external link
+1. Means to recheck links
+    1. Preferably activatable from admin page and/or a specific
+        (category) page itself
+    1. Link types
+        1. orange
+        1. blue (which may have since been deleted)
+        1. all in the entire wiki, not just the cache table
 1. Update <https://www.mediawiki.org/wiki/Extension:BADI_Pages_Created_Links>
     when more functional, if necessary forwarding to `BADIPagesCreatedLinks`.
 1. Add to <https://www.mediawiki.org/wiki/Database_field_prefixes>
