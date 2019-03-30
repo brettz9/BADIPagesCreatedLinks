@@ -215,20 +215,23 @@ class BADIPagesCreatedLinks {
       //    performance hit.
       // $title = $article->getTitle();
       CheckBADIPagesCreatedLinks::queue([
-        // Not sure if global is available during jobs, so saving a local copy
+        // Not sure if global is available during jobs, so saving a
+        //   local copy
         'wgBADIConfig' => $wgBADIConfig,
         'articleTitle' => $articleTitle
       ]);
       return 'pending';
     }
-    // Todo: Call `run()`
-    return;
+    // Todo: Call `run()` instead here
+    return 'existing';
   }
   /**
-   * Our starting hook function after table creation; adds links to the
-   * Toolbox according to a user-configurable and localizable list of
-   * links and titles, and styles links differently depending on whether
-   * the link has been created at the target site yet or not
+   * Hook (`BaseTemplateToolbox`) for starting function after table
+   * creation.
+   * Adds links to the Toolbox according to a user-configurable and
+   * localizable list of links and titles, and styles links differently
+   * depending on whether the link has been created at the target site
+   * yet or not
    * @param BaseTemplate $baseTemplate
    * @param array $toolbox Passed by reference
    * @return boolean Whether any links were added
@@ -352,6 +355,8 @@ class BADIPagesCreatedLinks {
     }
 
     // Todo: Any other way to write than directly using `echo`?
+    //    Other extensions appear to set a property on `$toolbox`;
+    //    for raw HTML, we may need to do this way
     echo str_replace_assoc([
       '{{LOCALIZED_INTRO}}' => isset(
           $wgBADIConfig['external_intro'][$wgLanguageCode]
@@ -365,6 +370,12 @@ class BADIPagesCreatedLinks {
     return true;
   }
 
+  /**
+   * Hook (`LoadExtensionSchemaUpdates`) for SQL installation/updating
+   * @see https://www.mediawiki.org/wiki/Manual:Hooks/LoadExtensionSchemaUpdates
+   * @param object $updater
+   * @return boolean
+   */
   public static function onLoadExtensionSchemaUpdates ($updater = null) {
     $table = 'ext_badipagescreatedlinks';
     $base = __DIR__ . DIRECTORY_SEPARATOR . 'sql' . DIRECTORY_SEPARATOR;
