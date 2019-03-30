@@ -87,6 +87,58 @@ class CheckBADIPagesCreatedLinks extends JobQueuer {
 			// checkLinks($article, $articleTitle);
 		}
 
+    // Store default options to be able to return back to them
+    //  later (in case MediaWiki or other extensions will rely on it)
+    $defaultOpts = stream_context_get_options(stream_context_get_default());
+
+    // Temporarily change context for the sake of `get_headers()`
+    //  (Wikipedia, though not MediaWiki, disallows HEAD requests
+    //  without a user-agent specified)
+    stream_context_set_default(
+      isset($wgBADIConfig['stream_context']) &&
+        count($wgBADIConfig['stream_context'])
+        ? $wgBADIConfig['stream_context']
+        : [
+          'http' => [
+            'user_agent' => (
+              isset($wgBADIConfig['user-agent'])
+                ? $wgBADIConfig['user-agent']
+                : wfMessage('user-agent').plain()
+            )
+          ]
+        ]
+    );
+
+    // Todo: With a debugging flag, we could update the database to
+    //    "checking" `remote_status` for the URL, but don't need the
+    //    performance hit.
+    // $title = $article->getTitle();
+    // CheckBADIPagesCreatedLinks::queue($title);
+    $headers = get_headers($url, 1);
+
+    stream_context_set_default($defaultOpts); // Set it back to original value
+
+    // Todo: Distinguish codes to add "erred" `remote_status`
+    $oldPageExists = !!($headers['Last-Modified'] ||
+      (strpos($headers[0], '200') !== false));
+    $createdState = $oldPageExists ? 'existing' : 'missing';
+
+    if ($update) {
+      $dbr->update(
+        $table,
+        ['remote_status' => $createdState],
+        ['id' => $row->id],
+        __METHOD__
+      );
+    }
+    else if ($cache) {
+      $dbr->insert($table, [
+        'url' => $url,
+        'remote_status' => $createdState,
+        'last_checked' => $curr_time
+      ], __METHOD__);
+    }
+
 		return true;
 	}
   public static function queue (
@@ -155,58 +207,7 @@ class BADIPagesCreatedLinks {
       }
     }
 
-    // Store default options to be able to return back to them
-    //  later (in case MediaWiki or other extensions will rely on it)
-    $defaultOpts = stream_context_get_options(stream_context_get_default());
-
-    // Temporarily change context for the sake of `get_headers()`
-    //  (Wikipedia, though not MediaWiki, disallows HEAD requests
-    //  without a user-agent specified)
-    stream_context_set_default(
-      isset($wgBADIConfig['stream_context']) &&
-        count($wgBADIConfig['stream_context'])
-        ? $wgBADIConfig['stream_context']
-        : [
-          'http' => [
-            'user_agent' => (
-              isset($wgBADIConfig['user-agent'])
-                ? $wgBADIConfig['user-agent']
-                : wfMessage('user-agent').plain()
-            )
-          ]
-        ]
-    );
-
-    // Todo: With a debugging flag, we could update the database to
-    //    "checking" `remote_status` for the URL, but don't need the
-    //    performance hit.
-    // $title = $article->getTitle();
-    // CheckBADIPagesCreatedLinks::queue($title);
-    $headers = get_headers($url, 1);
-
-    stream_context_set_default($defaultOpts); // Set it back to original value
-
-    // Todo: Distinguish codes to add "erred" `remote_status`
-    $oldPageExists = !!($headers['Last-Modified'] ||
-      (strpos($headers[0], '200') !== false));
-    $createdState = $oldPageExists ? 'existing' : 'missing';
-
-    if ($update) {
-      $dbr->update(
-        $table,
-        ['remote_status' => $createdState],
-        ['id' => $row->id],
-        __METHOD__
-      );
-    }
-    else if ($cache) {
-      $dbr->insert($table, [
-        'url' => $url,
-        'remote_status' => $createdState,
-        'last_checked' => $curr_time
-      ], __METHOD__);
-    }
-    return $createdState;
+    return 'pending';
   }
   /*
    * Our starting hook function after table creation; adds links to the
