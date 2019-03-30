@@ -163,9 +163,7 @@ class BADIPagesCreatedLinks {
    * @param {String} url The URL of the site to detect
    * @returns {"existing"|"missing"|"checking"|"erred"} Created state of the page
    */
-  private static function getCreatedStateForSite ($url) {
-    global $wgBADIConfig;
-
+  private static function getCreatedStateForSite ($url, $wgBADIConfig) {
     $cache = false;
     $update = false;
     $row = null;
@@ -223,17 +221,30 @@ class BADIPagesCreatedLinks {
    * @param {Object} $this Passed by Mediawiki (required)
    * @returns {Boolean} Whether any links were added
    */
-   public static function addPageCreatedLinks ($out) {
+   public static function addPageCreatedLinks (BaseTemplate $baseTemplate, array &$toolbox) {
     // GET LOCALE MESSAGES
     wfLoadExtensionMessages('BADIPagesCreatedLinks');
 
-    global $wgRequest, $wgLanguageCode, $wgBADIConfig;
+    global $wgLanguageCode, $wgBADIConfig;
 
-    $currentPageTitle = $wgRequest->getText('title');
+    $currentPageTitleObj = $baseTemplate->getSkin()->getTitle();
+
+    $currentPageTitle = $currentPageTitleObj->getPrefixedDBKey();
+    $titleNamespace = $currentPageTitleObj->getNamespace();
 
     if (isset($wgBADIConfig['no_namespaces']) &&
       $wgBADIConfig['no_namespaces'] &&
-      strpos($currentPageTitle, ':') !== false
+      $titleNamespace !== NS_MAIN
+    ) {
+      return false;
+    }
+    if (isset($wgBADIConfig['namespace_whitelist']) &&
+      !in_array($titleNamespace, $wgBADIConfig['namespace_whitelist'])
+    ) {
+      return false;
+    }
+    if (isset($wgBADIConfig['namespace_blacklist']) &&
+      in_array($titleNamespace, $wgBADIConfig['namespace_blacklist'])
     ) {
       return false;
     }
@@ -291,7 +302,7 @@ class BADIPagesCreatedLinks {
       );
       // Might allow defining inline styles for easier
       // though less ideal configuration
-      $createdState = self::getCreatedStateForSite($siteWithTitle);
+      $createdState = self::getCreatedStateForSite($siteWithTitle, $wgBADIConfig);
       $created = $createdState === 'existing';
       $uncreated = $createdState === 'missing';
       $pending = $createdState === 'pending';
@@ -345,6 +356,8 @@ class BADIPagesCreatedLinks {
     if ($link_items === '') {
       return false;
     }
+
+    // Todo: Any other way to write than directly using `echo`?
     echo str_replace(
       '{{LINK_ITEMS}}',
       $link_items,

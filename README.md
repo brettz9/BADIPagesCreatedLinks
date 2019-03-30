@@ -210,13 +210,18 @@ $wgBADIConfig['site_editing_templates'] =
     '{{SITE_EDITING}}{{CURRENT_PAGE_TITLE}}&action=edit';
 ```
 
-#### `no_namespaces`
+#### Namespaces (`no_namespaces`, `namespace_whitelist`, `namespace_blacklist`)
 
 If you don't want links to appear while the user is in other namespaces,
 you can set this setting:
 
 ```php
 $wgBADIConfig['no_namespaces'] = true;
+
+// See https://www.mediawiki.org/wiki/Manual:Namespace#Built-in_namespaces
+//  May use numbers directly or constants based on "Name"
+$wgBADIConfig['namespace_whitelist'] = [NS_MAIN];
+$wgBADIConfig['namespace_blacklist'] = [NS_Help];
 ```
 
 #### `user-agent`
@@ -301,7 +306,6 @@ make to civilization, if it will only be truly enabled to do so.
 
 ## Medium priority to-dos
 
-1. Allow more precise namespace config (whitelist or blacklist)
 1. Allow admin page to customize renames (have separate table column) or
     have renames specified as properties within (category) pages.
 
@@ -309,4 +313,5 @@ make to civilization, if it will only be truly enabled to do so.
 
 1. Reconsider and possibly integrate `BADIPingback` branch (pingbacks,
     trackbacks, refbacks, and the callback linkback; have blogs and forum
-    content be displayed inside wikis
+    content be displayed inside wikis; this kind of pubsub could also
+    help inform whitelisted sites of change of state of a page
