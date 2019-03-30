@@ -277,23 +277,17 @@ make to civilization, if it will only be truly enabled to do so.
 
 ## Immediate to-dos
 
-1. Cache! (add to async queue); until cache obtained, show as external
-    link.
-  1. Review old incomplete `caching` branch for ideas
-  1. Add to <https://www.mediawiki.org/wiki/Database_field_prefixes>
-      (to avoid future name clashes)
-  1. Resources
-    - <https://www.mediawiki.org/wiki/Manual:Hooks/LoadExtensionSchemaUpdates>
-    - <https://www.mediawiki.org/wiki/Manual:Database_access (to query)
-    - <https://www.mediawiki.org/wiki/Manual:Job_queue/For_developers> (for
-      adding an async job)
+1. Cache, adding to async queue
+  1. Until cache obtained, show as external link.
   1. Also need to have task to recheck orange link(s), preferably
     activatable from admin page or a specific (category) page itself;
-    may also wish to allow rechecking blue links which may have since
-    been deleted.
-  1. Recheck all links
+    we may also wish to allow rechecking blue links which may have since
+    been deleted. And to (re)check all links in the entire wiki, not
+    just the cache table.
 1. Update <https://www.mediawiki.org/wiki/Extension:BADI_Pages_Created_Links>
     when more functional, if necessary forwarding to `BADIPagesCreatedLinks`.
+1. Add to <https://www.mediawiki.org/wiki/Database_field_prefixes>
+    (to avoid future name clashes)
 
 ## Medium priority to-dos
 

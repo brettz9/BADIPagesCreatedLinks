@@ -1,5 +1,102 @@
 <?php
 
+// https://www.mediawiki.org/wiki/Manual:Hooks/LoadExtensionSchemaUpdates
+// https://www.mediawiki.org/wiki/Manual:Database_access
+// https://www.mediawiki.org/wiki/Manual:Job_queue/For_developers
+
+class JobQueuer extends Job {
+  public function __construct($id, $title, $params) {
+		parent::__construct($id, $title, $params);
+	}
+  /**
+   * @param jobParams Set any job parameters you want to have available when your job runs
+   *    Can also be an empty array.
+   *    These values will be available to your job via `$this->params['param_name']`
+   *    e.g., `$jobParams = [ 'limit' => $limit, 'cascade' => true ];`
+   */
+  public static function queue ($jobParams, $title = NULL) {
+    /**
+     * Get the article title that the job will use when running
+     *
+     *    If you will not use the title to create/modify a new/existing page, you can use:
+     *
+     *    A vague, dummy title
+     *    Title::newMainPage();
+     *
+     *    A more specific title
+     *    Title::newFromText('User:UserName/SynchroniseThreadArticleData')
+     *
+     *    A very specific title that includes a unique identifier. This can be useful
+     *    when you create several batch jobs with the same base title
+     *    Title::newFromText(
+     *        User->getName() . '/' .
+     *        'MyExtension/' .
+     *        'My Batch Job/' .
+     *        uniqid(),
+     *        NS_USER
+     *    ),
+     *
+     *    The idea is for the db to have a title reference that will be used by your
+     *    job to create/update a title or for troubleshooting by having a title
+     *    reference that is not vague
+     */
+    if ($title === NULL) {
+      $article = new Article($this->title, 0);
+      $title = $article->getTitle();
+    }
+
+    /**
+     * 3. Instantiate a Job object
+     */
+    $job = new self($title, $jobParams);
+
+
+    /**
+     * 4. Insert the job into the database
+     *
+     *    For performance reasons, if you plan on inserting several jobs
+     *    into the queue, it’s best to add them to a single array and
+     *    then push them all at once into the queue
+     *
+     *    for example, earlier in your code you have built up an array
+     *    of `$jobs` with different titles and jobParams
+     *
+     *    $jobs[] = new self($title, $jobParams);
+     *    JobQueueGroup::singleton()->push( $jobs );
+     */
+    JobQueueGroup::singleton()->push($job);
+  }
+}
+
+/**
+ * For asynchronous requests
+ * @see https://www.mediawiki.org/wiki/Manual:Job_queue/For_developers
+ */
+class CheckBADIPagesCreatedLinks extends JobQueuer {
+  public function __construct($title, $params) {
+		parent::__construct('checkBADIPagesCreatedLinks', $title, $params);
+	}
+  /**
+	 * Execute the job
+	 *
+	 * @return bool
+	 */
+	public function run() {
+		// Load data from $this->params and $this->title
+		$article = new Article($this->title, 0);
+		$limit = $this->params['limit'];
+		$cascade = $this->params['cascade'];
+
+		// Perform your updates
+		if ($article) {
+			Threads::synchroniseArticleData($article, $limit, $cascade);
+		}
+
+		return true;
+	}
+  public static function queueJob () {}
+}
+
 /*
 // Enable to get system messages during testing
 $wgMainCacheType = CACHE_NONE;
@@ -78,6 +175,8 @@ class BADIPagesCreatedLinks {
           ]
         ]
     );
+
+    // JobQueuer::queue();
     $headers = get_headers($url, 1);
 
     stream_context_set_default($defaultOpts); // Set it back to original value
