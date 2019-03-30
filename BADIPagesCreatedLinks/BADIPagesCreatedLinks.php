@@ -130,7 +130,7 @@ class BADIPagesCreatedLinks {
       $dbr = wfGetDB(DB_SLAVE);
       $res = $dbr->select(
         $table,
-        ['remote_exists', 'checked_ts'],
+        ['remote_exists', 'checked_timestamp'],
         ['url' => $url],
         __METHOD__
       );
@@ -144,7 +144,7 @@ class BADIPagesCreatedLinks {
             : $wgBADIConfig['cache_nonexisting_timeout'];
 
           $curr_time = time();
-          if ($curr_time <= ($row->checked_ts + $timeout)) {
+          if ($curr_time <= ($row->checked_timestamp + $timeout)) {
             return !!$row->remote_exists;
           }
           $update = true;
@@ -197,7 +197,7 @@ class BADIPagesCreatedLinks {
       $dbr->insert($table, [
         'url' => $url,
         'remote_exists' => $oldPageExists,
-        'checked_ts' => $curr_time
+        'checked_timestamp' => $curr_time
       ], __METHOD__);
     }
     return $oldPageExists;
