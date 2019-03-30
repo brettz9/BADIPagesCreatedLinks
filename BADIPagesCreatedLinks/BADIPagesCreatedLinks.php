@@ -81,6 +81,7 @@ class CheckBADIPagesCreatedLinks extends JobQueuer {
 	public function run() {
 		// Load data from $this->params and $this->title
     $articleTitle = $this->params['articleTitle'];
+    $wgBADIConfig = $this->params['wgBADIConfig;'];
 		$article = new Article($articleTitle, 0);
 
 		if ($article) {
@@ -109,11 +110,6 @@ class CheckBADIPagesCreatedLinks extends JobQueuer {
         ]
     );
 
-    // Todo: With a debugging flag, we could update the database to
-    //    "checking" `remote_status` for the URL, but don't need the
-    //    performance hit.
-    // $title = $article->getTitle();
-    // CheckBADIPagesCreatedLinks::queue($title);
     $headers = get_headers($url, 1);
 
     stream_context_set_default($defaultOpts); // Set it back to original value
@@ -142,17 +138,17 @@ class CheckBADIPagesCreatedLinks extends JobQueuer {
 		return true;
 	}
   public static function queue (
-    $articleTitle,
+    $params,
     $type = 'CheckLinks',
     $ns = 'BADIPagesCreatedLinks'
   ) {
 
     $title = Title::newFromText(
-      implode(DIRECTORY_SEPARATOR, [$ns, $type, $articleTitle]) . uniqid(),
+      implode(DIRECTORY_SEPARATOR, [$ns, $type, $params->articleTitle]) . uniqid(),
       NS_SPECIAL
     );
 
-    parent::queue(['articleTitle' => $articleTitle], $title);
+    parent::queue($params, $title);
   }
 }
 
@@ -205,9 +201,19 @@ class BADIPagesCreatedLinks {
           $cache = false;
         }
       }
+      // Todo: With a debugging flag, we could update the database to
+      //    "checking" `remote_status` for the URL, but don't need the
+      //    performance hit.
+      // $title = $article->getTitle();
+      CheckBADIPagesCreatedLinks::queue([
+        // Not sure if global is available during jobs, so saving a local copy
+        'wgBADIConfig' -> $wgBADIConfig,
+        'articleTitle' => $articleTitle
+      ]);
+      return 'pending';
     }
-
-    return 'pending';
+    // Todo: Call `run()`
+    return;
   }
   /*
    * Our starting hook function after table creation; adds links to the
