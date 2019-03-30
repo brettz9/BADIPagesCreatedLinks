@@ -4,7 +4,19 @@
 // https://www.mediawiki.org/wiki/Manual:Database_access
 // https://www.mediawiki.org/wiki/Manual:Job_queue/For_developers
 
+/*
+// Enable to get system messages during testing
+$wgMainCacheType = CACHE_NONE;
+$wgCacheDirectory = false;
+*/
+
 class JobQueuer extends Job {
+  /**
+   * `Job` constructor only has 2 arguments
+   * @param $id
+   * @param $title
+   * @param $params
+   */
   public function __construct($id, $title, $params) {
 		parent::__construct($id, $title, $params);
 	}
@@ -13,58 +25,43 @@ class JobQueuer extends Job {
    *    Can also be an empty array.
    *    These values will be available to your job via `$this->params['param_name']`
    *    e.g., `$jobParams = [ 'limit' => $limit, 'cascade' => true ];`
+   * @param title The article title that the job will use when running
+   *    Adds unique ID by default; useful for creating several batch jobs with
+   *      the same base title.
+   *    The idea is for the db to have a title reference that will be used by your
+   *    job to create/update a title or for troubleshooting by having a title
+   *    reference that is not vague
    */
   public static function queue ($jobParams, $title = NULL) {
-    /**
-     * Get the article title that the job will use when running
-     *
-     *    If you will not use the title to create/modify a new/existing page, you can use:
-     *
-     *    A vague, dummy title
-     *    Title::newMainPage();
-     *
-     *    A more specific title
-     *    Title::newFromText('User:UserName/SynchroniseThreadArticleData')
-     *
-     *    A very specific title that includes a unique identifier. This can be useful
-     *    when you create several batch jobs with the same base title
-     *    Title::newFromText(
-     *        User->getName() . '/' .
-     *        'MyExtension/' .
-     *        'My Batch Job/' .
-     *        uniqid(),
-     *        NS_USER
-     *    ),
-     *
-     *    The idea is for the db to have a title reference that will be used by your
-     *    job to create/update a title or for troubleshooting by having a title
-     *    reference that is not vague
-     */
     if ($title === NULL) {
-      $article = new Article($this->title, 0);
-      $title = $article->getTitle();
+      $title = Title::newFromText(
+        'JobQueuer/' . uniqid(),
+        NS_SPECIAL
+      );
     }
 
     /**
-     * 3. Instantiate a Job object
+     * Instantiate a Job object
      */
     $job = new self($title, $jobParams);
 
-
     /**
-     * 4. Insert the job into the database
-     *
-     *    For performance reasons, if you plan on inserting several jobs
-     *    into the queue, it’s best to add them to a single array and
-     *    then push them all at once into the queue
-     *
-     *    for example, earlier in your code you have built up an array
-     *    of `$jobs` with different titles and jobParams
-     *
-     *    $jobs[] = new self($title, $jobParams);
-     *    JobQueueGroup::singleton()->push( $jobs );
+     * Insert the job into the database
      */
     JobQueueGroup::singleton()->push($job);
+  }
+  /**
+   * For performance reasons, if you plan on inserting several jobs
+   * into the queue, it’s best to add them to a single array and
+   * then push them all at once into the queue
+   * @param {Array} jobSet Has different titles and jobParams
+   */
+  public static function queueArray ($jobSet) {
+    $jobs = [];
+    foreach ($jobInfo as $jobSet) {
+      $jobs[] = new self($jobInfo->title, $jobInfo->jobParams);
+    }
+    JobQueueGroup::singleton()->push($jobs);
   }
 }
 
@@ -83,25 +80,29 @@ class CheckBADIPagesCreatedLinks extends JobQueuer {
 	 */
 	public function run() {
 		// Load data from $this->params and $this->title
-		$article = new Article($this->title, 0);
-		$limit = $this->params['limit'];
-		$cascade = $this->params['cascade'];
+    $articleTitle = $this->params['articleTitle'];
+		$article = new Article($articleTitle, 0);
 
-		// Perform your updates
 		if ($article) {
-			Threads::synchroniseArticleData($article, $limit, $cascade);
+			// checkLinks($article, $articleTitle);
 		}
 
 		return true;
 	}
-  public static function queueJob () {}
-}
+  public static function queue (
+    $articleTitle,
+    $type = 'CheckLinks',
+    $ns = 'BADIPagesCreatedLinks'
+  ) {
 
-/*
-// Enable to get system messages during testing
-$wgMainCacheType = CACHE_NONE;
-$wgCacheDirectory = false;
-*/
+    $title = Title::newFromText(
+      implode(DIRECTORY_SEPARATOR, [$ns, $type, $articleTitle]) . uniqid(),
+      NS_SPECIAL
+    );
+
+    parent::queue(['articleTitle' => $articleTitle], $title);
+  }
+}
 
 class BADIPagesCreatedLinks {
   /*
@@ -111,7 +112,7 @@ class BADIPagesCreatedLinks {
    * it exists, it has been created already, and if not, it has not yet been
    * created.
    * @private
-   * @param {String} The URL of the site to detect
+   * @param {String} url The URL of the site to detect
    * @returns {Boolean} Whether or not the page has been created
    */
   private static function getCreatedStateForSite ($url) {
@@ -176,7 +177,8 @@ class BADIPagesCreatedLinks {
         ]
     );
 
-    // JobQueuer::queue();
+    // $title = $article->getTitle();
+    // CheckBADIPagesCreatedLinks::queue($title);
     $headers = get_headers($url, 1);
 
     stream_context_set_default($defaultOpts); // Set it back to original value
