@@ -22,8 +22,8 @@
 
   },
   "Hooks": {
-    "BaseTemplateToolbox": "badi_addPageCreatedLinks",
-    "LoadExtensionSchemaUpdates": "badi_onLoadExtensionSchemaUpdates"
+    "BaseTemplateToolbox": "BADIPagesCreatedLinks::addPageCreatedLinks",
+    "LoadExtensionSchemaUpdates": "BADIPagesCreatedLinks::onLoadExtensionSchemaUpdates"
   },
   "config": {
     "BADIConfig": {
