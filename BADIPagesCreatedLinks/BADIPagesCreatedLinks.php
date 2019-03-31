@@ -83,6 +83,7 @@ class CheckBADIPagesCreatedLinks extends JobQueuer {
   public function __construct ($title, $params) {
 		parent::__construct('checkBADIPagesCreatedLinks', $title, $params);
 	}
+
   /**
 	 * Execute the job
 	 *
