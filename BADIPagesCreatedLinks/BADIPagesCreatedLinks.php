@@ -245,10 +245,10 @@ class BADIPagesCreatedLinks {
 
     switch ($updater->getDB()->getType()) {
       case 'mysql':
-        $updater->addExtensionTable([
+        $updater->addExtensionTable(
           $table,
           $base . DIRECTORY_SEPARATOR . $table . '.sql'
-        ]); // Initially install tables
+        ); // Initially install tables
         break;
       default:
         echo "\nBADIPagesCreatedLinks currently does not " +
