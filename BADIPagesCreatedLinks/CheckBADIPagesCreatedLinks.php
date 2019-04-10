@@ -1,3 +1,4 @@
+<?php
 class JobQueuer extends Job {
   /**
    * `Job` constructor only has 2 arguments
@@ -147,3 +148,4 @@ class CheckBADIPagesCreatedLinks extends JobQueuer {
     parent::queue($params, $title);
   }
 }
+?>
