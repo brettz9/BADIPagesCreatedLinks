@@ -19,10 +19,14 @@
   	]
   },
   "JobClasses": {
-      "checkBADIPagesCreatedLinks": "CheckBADIPagesCreatedLinks" 
+      "checkBADIPagesCreatedLinks": "CheckBADIPagesCreatedLinks"
   },
   "SpecialPages": {
 
+  },
+  "AutoloadClasses": {
+      "BADIPagesCreatedLinks": "BADIPagesCreatedLinks.php",
+      "CheckBADIPagesCreatedLinks": "CheckBADIPagesCreatedLinks.php"
   },
   "Hooks": {
     "BaseTemplateToolbox": "BADIPagesCreatedLinks::addPageCreatedLinks",
