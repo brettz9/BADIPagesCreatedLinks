@@ -1,5 +1,7 @@
 <?php
 
+// require('CheckBADIPagesCreatedLinks.php');
+
 // https://www.mediawiki.org/wiki/Manual:Hooks/LoadExtensionSchemaUpdates
 // https://www.mediawiki.org/wiki/Manual:Database_access
 // https://www.mediawiki.org/wiki/Manual:Job_queue/For_developers
@@ -32,7 +34,7 @@ class BADIPagesCreatedLinks {
    * @param array $wgBADIConfig The extension config object
    * @return string `["existing"|"missing"|"checking"|"erred"]` Created state of the page
    */
-  private static function getCreatedStateForSite ($url, $wgBADIConfig) {
+  public static function getCreatedStateForSite ($url, $wgBADIConfig) {
     $cache = false;
     $update = false;
     $rowID = null;
@@ -51,6 +53,8 @@ class BADIPagesCreatedLinks {
       );
       if ($res) {
         $row = $res->fetchRow();
+      }
+      if ($row) {
         $rowID = $row->id;
         if ($row->remote_status === 'existing' && $wgBADIConfig['cache_existing'] ||
           $row->remote_status !== 'existing' && $wgBADIConfig['cache_nonexisting']
@@ -69,6 +73,7 @@ class BADIPagesCreatedLinks {
           $cache = false;
         }
       }
+
       // Todo: With a debugging flag, we could update the database to
       //    "checking" `remote_status` for the URL, but don't need the
       //    performance hit.
@@ -98,7 +103,7 @@ class BADIPagesCreatedLinks {
    * @param array $toolbox Passed by reference
    * @return boolean Whether any links were added
    */
-   public static function addPageCreatedLinks (BaseTemplate $baseTemplate, array &$toolbox) {
+  public static function addPageCreatedLinks (BaseTemplate $baseTemplate, array &$toolbox) {
     // GET LOCALE MESSAGES
     global $wgLanguageCode, // Ok as not deprecated
       $wgBADIConfig; // Ok as still recommended way
@@ -213,6 +218,7 @@ class BADIPagesCreatedLinks {
         '{{LOCALIZED_TITLE}}' => $siteTitle
       ], $wgBADIConfig['external_site_templates']);
     }
+
     if ($link_items === '') {
       return false;
     }
@@ -230,9 +236,9 @@ class BADIPagesCreatedLinks {
               wfMessage('external-pages-w-same-title')->plain()),
       '{{LINK_ITEMS}}' => $link_items
     ], $wgBADIConfig['external_sites_templates']);
+
     return true;
   }
-
   /**
    * Hook (`LoadExtensionSchemaUpdates`) for SQL installation/updating
    * @see https://www.mediawiki.org/wiki/Manual:Hooks/LoadExtensionSchemaUpdates
@@ -258,5 +264,3 @@ class BADIPagesCreatedLinks {
     return true;
   }
 }
-
-?>
