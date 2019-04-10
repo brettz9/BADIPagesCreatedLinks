@@ -1,6 +1,6 @@
 <?php
 
-// require('JobQueuer.php');
+require('JobQueuer.php');
 
 /**
  * For asynchronous requests
@@ -8,7 +8,7 @@
  */
 class CheckBADIPagesCreatedLinks extends JobQueuer {
   public function __construct ($title, $params) {
-		parent::__construct('checkBADIPagesCreatedLinks', $title, $params);
+		parent::__construct('CheckBADIPagesCreatedLinks', $title, $params);
 	}
 
   /**
@@ -87,7 +87,6 @@ class CheckBADIPagesCreatedLinks extends JobQueuer {
     $type = 'CheckLinks',
     $ns = 'BADIPagesCreatedLinks'
   ) {
-
     $title = Title::newFromText(
       implode(DIRECTORY_SEPARATOR, [$ns, $type, $params->articleTitle]) . uniqid(),
       NS_SPECIAL

@@ -1,6 +1,6 @@
 <?php
 
-// require('CheckBADIPagesCreatedLinks.php');
+require('CheckBADIPagesCreatedLinks.php');
 
 // https://www.mediawiki.org/wiki/Manual:Hooks/LoadExtensionSchemaUpdates
 // https://www.mediawiki.org/wiki/Manual:Database_access
