@@ -1,9 +1,5 @@
 <?php
 
-use Job;
-use JobQueueGroup;
-use Title;
-
 class JobQueuer extends Job {
   /**
    * @param string $id
@@ -41,7 +37,7 @@ class JobQueuer extends Job {
     /**
      * Instantiate a Job object
      */
-    $job = new self($jobParams['jobID'], $title, $jobParams);
+    $job = new self($jobParams['type'], $title, $jobParams);
 
     /**
      * Insert the job into the database

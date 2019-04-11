@@ -23,8 +23,7 @@ class CheckBADIPagesCreatedLinks extends JobQueuer {
     $type = 'CheckLinks',
     $ns = 'BADIPagesCreatedLinks'
   ) {
-    $params['jobID'] = self::$id;
-    $params['type'] = $params['jobID'];
+    $params['type'] = self::$id;
 
     $title = Title::newFromText(
       implode(DIRECTORY_SEPARATOR, [$ns, $type, $params['articleTitle']]) . uniqid(),

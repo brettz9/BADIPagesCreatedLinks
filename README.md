@@ -291,7 +291,15 @@ API URL (`query.statistics.jobs`):
 
 And to run jobs (if not running for some reason in the queue), try:
 
-`php maintenance/runJobs.php`
+- `php maintenance/runJobs.php`
+
+And to delete:
+
+- `php ./manageJobs.php --type CheckBADIPagesCreatedLinks --action delete`
+
+To repush abandoned:
+
+- `php ./manageJobs.php --type CheckBADIPagesCreatedLinks --action repush-abandoned`
 
 ### Defaulting and i18n
 
