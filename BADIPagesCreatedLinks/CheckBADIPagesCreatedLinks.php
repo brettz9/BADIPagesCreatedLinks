@@ -7,8 +7,9 @@ require('JobQueuer.php');
  * @see https://www.mediawiki.org/wiki/Manual:Job_queue/For_developers
  */
 class CheckBADIPagesCreatedLinks extends JobQueuer {
+  static $id = 'CheckBADIPagesCreatedLinks';
   public function __construct ($title, $params) {
-		parent::__construct('CheckBADIPagesCreatedLinks', $title, $params);
+		parent::__construct(self::$id, $title, $params);
 	}
 
   /**
@@ -22,8 +23,11 @@ class CheckBADIPagesCreatedLinks extends JobQueuer {
     $type = 'CheckLinks',
     $ns = 'BADIPagesCreatedLinks'
   ) {
+    $params['jobID'] = self::$id;
+    $params['type'] = $params['jobID'];
+
     $title = Title::newFromText(
-      implode(DIRECTORY_SEPARATOR, [$ns, $type, $params->articleTitle]) . uniqid(),
+      implode(DIRECTORY_SEPARATOR, [$ns, $type, $params['articleTitle']]) . uniqid(),
       NS_SPECIAL
     );
 

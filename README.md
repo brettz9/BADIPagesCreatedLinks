@@ -289,6 +289,10 @@ API URL (`query.statistics.jobs`):
 
 `api.php?action=query&meta=siteinfo&siprop=statistics&format=jsonfm`
 
+And to run jobs (if not running for some reason in the queue), try:
+
+`php maintenance/runJobs.php`
+
 ### Defaulting and i18n
 
 As evident above, most of the configuration will be provided by the user

@@ -6,7 +6,6 @@ use Title;
 
 class JobQueuer extends Job {
   /**
-   * `Job` constructor only has 2 arguments
    * @param string $id
    * @param string $title
    * @param array $params
@@ -42,7 +41,7 @@ class JobQueuer extends Job {
     /**
      * Instantiate a Job object
      */
-    $job = new self($title, $jobParams);
+    $job = new self($jobParams['jobID'], $title, $jobParams);
 
     /**
      * Insert the job into the database
@@ -58,7 +57,7 @@ class JobQueuer extends Job {
   public static function queueArray ($jobSet) {
     $jobs = [];
     foreach ($jobSet as $jobInfo) {
-      $jobs[] = new self($jobInfo->title, $jobInfo->jobParams);
+      $jobs[] = new self($jobInfo['title'], $jobInfo['jobParams']);
     }
     JobQueueGroup::singleton()->push($jobs);
   }

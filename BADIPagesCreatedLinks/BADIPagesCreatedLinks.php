@@ -35,10 +35,11 @@ class BADIPagesCreatedLinks {
    * created.
    * @private
    * @param string $url The URL of the site to detect
+   * @param string $currentPageTitle The page title
    * @param array $wgBADIConfig The extension config object
    * @return string `["existing"|"missing"|"checking"|"erred"]` Created state of the page
    */
-  public static function getCreatedStateForSite ($url, $wgBADIConfig) {
+  public static function getCreatedStateForSite ($url, $currentPageTitle, $wgBADIConfig) {
     $insertCache = false;
     $updateCache = false;
     $rowID = null;
@@ -97,6 +98,7 @@ class BADIPagesCreatedLinks {
         // Not sure if global is available during jobs, so saving a
         //   local copy
         'url' => $url,
+        'articleTitle' => $currentPageTitle,
         'wgBADIConfig' => $wgBADIConfig,
         'insertCache' => $insertCache,
         'updateCache' => $updateCache,
@@ -198,7 +200,7 @@ class BADIPagesCreatedLinks {
       // Might allow defining inline styles for easier
       // though less ideal configuration
       $createdState = self::getCreatedStateForSite(
-        $siteWithTitle, $wgBADIConfig
+        $siteWithTitle, $currentPageTitle, $wgBADIConfig
       );
       $created = $createdState === 'existing';
       $uncreated = $createdState === 'missing';
