@@ -47,6 +47,8 @@
         "createdLinkInlineStyles": "",
         "uncreatedLinkInlineStyles": "",
         "createdLinkClass": "external",
+        "checkingLinkInlineStyles": "",
+        "erredLinkInlineStyles": "",
         "uncreatedLinkClass": "new",
         "checkingLinkClass": "checking",
         "erredLinkClass": "erred",

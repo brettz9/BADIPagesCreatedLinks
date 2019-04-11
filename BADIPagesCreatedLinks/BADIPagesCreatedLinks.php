@@ -53,8 +53,7 @@ class BADIPagesCreatedLinks {
       $res = $dbr->select(
         $table,
         [
-          'remote_status', 'last_checked'
-          // , 'url', 'id' // For debugging
+          'remote_status', 'last_checked', 'id'
         ],
         ['url' => $url],
         __METHOD__
@@ -65,16 +64,16 @@ class BADIPagesCreatedLinks {
       // var_dump($row);
       if ($row) {
         $updateCache = true;
-        $rowID = $row->id;
-        if ($row->remote_status === 'existing' && $wgBADIConfig['cache_existing'] ||
-          $row->remote_status !== 'existing' && $wgBADIConfig['cache_nonexisting']
+        $rowID = $row['id'];
+        if ($row['remote_status'] === 'existing' && $wgBADIConfig['cache_existing'] ||
+          $row['remote_status'] !== 'existing' && $wgBADIConfig['cache_nonexisting']
         ) {
-          $timeout = $row->remote_status === 'existing'
+          $timeout = $row['remote_status'] === 'existing'
             ? $wgBADIConfig['cache_existing_timeout'] // Default: About a year
             : $wgBADIConfig['cache_nonexisting_timeout']; // Default: About a month
 
-          if ($currTime <= (strtotime($row->last_checked) + $timeout)) {
-            return $row->remote_status;
+          if ($currTime <= (strtotime($row['last_checked']) + $timeout)) {
+            return $row['remote_status'];
           }
         }
       } else {
@@ -229,7 +228,7 @@ class BADIPagesCreatedLinks {
         : $siteWithTitle;
 
       $link_items .= str_replace_assoc([
-        '{{STYLES}}' => isset($styles) ? 'style="'.($styles).'"' : '',
+        '{{STYLES}}' => isset($styles) && $styles ? 'style="'.($styles).'"' : '',
         '{{CLASS}}' => $class,
         '{{LOCALIZED_LINK}}' => $siteWithTitle,
         '{{LOCALIZED_TITLE}}' => $siteTitle
