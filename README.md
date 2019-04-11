@@ -275,7 +275,9 @@ Jobs.
 - `$wgRunJobsAsync` - Should probably set to `true` to improve performance.
 - `$wgJobRunRate` - Keep at `1` to ensure job to cache data will be performed,
   though might experiment with lowering, e.g., to `.01` to only run the job
-  upon a percentage of requests.
+  upon a percentage of requests. Or you may set to `0` and run via a `cron`
+  task as per [Manual:Job_queue](https://www.mediawiki.org/wiki/Manual:Job_queue):
+  `0 0 * * * /usr/bin/php /var/www/wiki/maintenance/runJobs.php > /var/log/runJobs.log 2>&1`
 - `$wgUpdateRowsPerJob` - Could change default of `300` to a higher number if
   demand on server is high with this frequency of operations between jobs.
 - `$wgJobBackoffThrottling` - Our jobs don't specify the number of work items
