@@ -129,7 +129,7 @@ It allows two variables, the first being `{{LOCALIZED_INTRO}}` which is
 merely the introductory text for the links (from `external_intro`) and
 `{{LINK_ITEMS}}` which are the individual line items containing the links.
 
-#### `external_site_templates` (and `createdLinkInlineStyles`/`uncreatedLinkInlineStyles`/`pendingLinkInlineStyles`/`erredLinkInlineStyles` and `createdLinkClass`/`uncreatedLinkClass`/`pendingLinkClass`/`erredLinkClass`)
+#### `external_site_templates` (and `createdLinkInlineStyles`/`uncreatedLinkInlineStyles`/`checkingLinkInlineStyles`/`erredLinkInlineStyles` and `createdLinkClass`/`uncreatedLinkClass`/`checkingLinkClass`/`erredLinkClass`)
 
 Each individual line item also has a template, "external_site_templates":
 
@@ -151,7 +151,7 @@ These can be added via:
 ```php
 $wgBADIConfig['createdLinkInlineStyles'] = ''; // e.g., font-weight:bold;
 $wgBADIConfig['uncreatedLinkInlineStyles'] = ''; // e.g., 'font-style:italic';
-$wgBADIConfig['pendingLinkInlineStyles'] = ''; // e.g., text-decoration: underline;
+$wgBADIConfig['checkingLinkInlineStyles'] = ''; // e.g., text-decoration: underline;
 $wgBADIConfig['erredLinkInlineStyles'] = ''; // e.g., color: red;
 ```
 
@@ -174,7 +174,7 @@ $wgBADIConfig['createdLinkClass'] = '';
 
 // Otherwise, we add the other built-in link classes:
 $wgBADIConfig['uncreatedLinkClass'] = 'new';
-$wgBADIConfig['pendingLinkClass'] = 'external';
+$wgBADIConfig['checkingLinkClass'] = 'external';
 $wgBADIConfig['erredLinkClass'] = 'external';
 ```
 

@@ -14,9 +14,11 @@ class JobQueuer extends Job {
   public function __construct ($id, $title, $params) {
 		parent::__construct($id, $title, $params);
 	}
+
   public function run () {
-    return true;
+    throw new Exception('JobQueuer child class must implement own `run` method');
   }
+
   /**
    * @param array $jobParams Set any job parameters you want to have available when your job runs
    *    Can also be an empty array.

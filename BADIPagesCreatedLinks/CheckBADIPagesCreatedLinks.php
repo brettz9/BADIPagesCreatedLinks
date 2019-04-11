@@ -12,6 +12,25 @@ class CheckBADIPagesCreatedLinks extends JobQueuer {
 	}
 
   /**
+   *
+   * @param array $params
+   * @param string $type
+   * @param string $ns
+   */
+  public static function queue (
+    $params,
+    $type = 'CheckLinks',
+    $ns = 'BADIPagesCreatedLinks'
+  ) {
+    $title = Title::newFromText(
+      implode(DIRECTORY_SEPARATOR, [$ns, $type, $params->articleTitle]) . uniqid(),
+      NS_SPECIAL
+    );
+
+    parent::queue($params, $title);
+  }
+
+  /**
 	 * Execute the job
 	 *
 	 * @return boolean
@@ -21,8 +40,8 @@ class CheckBADIPagesCreatedLinks extends JobQueuer {
     $wgBADIConfig = $this->params['wgBADIConfig;'];
     $url = $this->params['url'];
     $rowID = $this->params['row_id'];
-    $cache = $this->params['cache'];
-    $update = $this->params['update'];
+    $insertCache = $this->params['insertCache'];
+    $updateCache = $this->params['updateCache'];
     $currTime = $this->params['curr_time'];
 
     // Store default options to be able to return back to them
@@ -57,7 +76,7 @@ class CheckBADIPagesCreatedLinks extends JobQueuer {
     $createdState = $oldPageExists ? 'existing' : 'missing';
 
     $dbr = wfGetDB(DB_SLAVE);
-    if ($update) {
+    if ($updateCache) {
       $dbr->update(
         $table,
         ['remote_status' => $createdState],
@@ -65,7 +84,7 @@ class CheckBADIPagesCreatedLinks extends JobQueuer {
         __METHOD__
       );
     }
-    else if ($cache) {
+    else if ($insertCache) {
       $dbr->insert($table, [
         'url' => $url,
         'remote_status' => $createdState,
@@ -75,23 +94,4 @@ class CheckBADIPagesCreatedLinks extends JobQueuer {
 
 		return true;
 	}
-
-  /**
-   *
-   * @param array $params
-   * @param string $type
-   * @param string $ns
-   */
-  public static function queue (
-    $params,
-    $type = 'CheckLinks',
-    $ns = 'BADIPagesCreatedLinks'
-  ) {
-    $title = Title::newFromText(
-      implode(DIRECTORY_SEPARATOR, [$ns, $type, $params->articleTitle]) . uniqid(),
-      NS_SPECIAL
-    );
-
-    parent::queue($params, $title);
-  }
 }

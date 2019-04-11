@@ -22,6 +22,10 @@ function str_replace_assoc (array $replace, $subject) {
    return str_replace(array_keys($replace), array_values($replace), $subject);
 }
 
+function phpTimeToSQLTimestamp ($time) {
+  return date('Y-m-d H:i:s', $time); // substr($time, 0, -3));
+}
+
 class BADIPagesCreatedLinks {
   /**
    * Utility to determine whether a page is created already (false if not);
@@ -35,59 +39,72 @@ class BADIPagesCreatedLinks {
    * @return string `["existing"|"missing"|"checking"|"erred"]` Created state of the page
    */
   public static function getCreatedStateForSite ($url, $wgBADIConfig) {
-    $cache = false;
-    $update = false;
+    $insertCache = false;
+    $updateCache = false;
     $rowID = null;
-    $currTime = null;
+    $row = null;
+    $currTime = time();
 
     $table = 'ext_badipagescreatedlinks';
 
     if (!$wgBADIConfig['no_cache']) {
-      $cache = true;
+      // $insertCache = true; // We are instead handling `insert` below for now
       $dbr = wfGetDB(DB_SLAVE);
       $res = $dbr->select(
         $table,
-        ['remote_status', 'last_checked'],
+        [
+          'remote_status', 'last_checked'
+          // , 'url', 'id' // For debugging
+        ],
         ['url' => $url],
         __METHOD__
       );
       if ($res) {
         $row = $res->fetchRow();
       }
+      // var_dump($row);
       if ($row) {
+        $updateCache = true;
         $rowID = $row->id;
         if ($row->remote_status === 'existing' && $wgBADIConfig['cache_existing'] ||
           $row->remote_status !== 'existing' && $wgBADIConfig['cache_nonexisting']
         ) {
           $timeout = $row->remote_status === 'existing'
-            ? $wgBADIConfig['cache_existing_timeout']
-            : $wgBADIConfig['cache_nonexisting_timeout'];
+            ? $wgBADIConfig['cache_existing_timeout'] // Default: About a year
+            : $wgBADIConfig['cache_nonexisting_timeout']; // Default: About a month
 
-          $currTime = time();
-          if ($currTime <= ($row->last_checked + $timeout)) {
+          if ($currTime <= (strtotime($row->last_checked) + $timeout)) {
             return $row->remote_status;
           }
-          $update = true;
         }
-        else {
-          $cache = false;
-        }
+      } else {
+        // Though we could avoid this performance hit, besides being
+        //    useful for debugging, this "checking" `remote_status`
+        //    for the URL also helps prevent multiple and potentially
+        //    redundant checking SQL jobs (if the same URL were visited
+        //    before a job executed to insert a record).
+
+        // This next line should be commented out if letting job do inserts
+        $updateCache = true;
+        $dbr->insert($table, [
+          'url' => $url,
+          'remote_status' => 'checking',
+          'last_checked' => phpTimeToSQLTimestamp($currTime)
+        ], __METHOD__);
+        $rowID = $dbr->insertId();
       }
 
-      // Todo: With a debugging flag, we could update the database to
-      //    "checking" `remote_status` for the URL, but don't need the
-      //    performance hit.
       CheckBADIPagesCreatedLinks::queue([
         // Not sure if global is available during jobs, so saving a
         //   local copy
         'url' => $url,
         'wgBADIConfig' => $wgBADIConfig,
-        'cache' => $cache,
-        'update' => $update,
+        'insertCache' => $insertCache,
+        'updateCache' => $updateCache,
         'row_id' => $rowID,
-        'curr_time' => $currTime
+        'curr_time' => phpTimeToSQLTimestamp($currTime)
       ]);
-      return 'pending';
+      return 'checking';
     }
     // Todo: Call `run()` instead here
     return 'existing';
@@ -186,22 +203,22 @@ class BADIPagesCreatedLinks {
       );
       $created = $createdState === 'existing';
       $uncreated = $createdState === 'missing';
-      $pending = $createdState === 'pending';
+      $checking = $createdState === 'checking';
       // $erred = $createdState === 'erred';
 
       $class = $created
         ? $wgBADIConfig['createdLinkClass']
         : $uncreated
           ? $wgBADIConfig['uncreatedLinkClass']
-          : $pending
-            ? $wgBADIConfig['pendingLinkClass']
+          : $checking
+            ? $wgBADIConfig['checkingLinkClass']
             : $wgBADIConfig['erredLinkClass'];
       $styles = $created
         ? $wgBADIConfig['createdLinkInlineStyles']
         : $uncreated
           ? $wgBADIConfig['uncreatedLinkInlineStyles']
-          : $pending
-            ? $wgBADIConfig['pendingLinkInlineStyles']
+          : $checking
+            ? $wgBADIConfig['checkingLinkInlineStyles']
             : $wgBADIConfig['erredLinkInlineStyles'];
 
       $siteWithTitle = $uncreated
