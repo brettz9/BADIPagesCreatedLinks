@@ -209,18 +209,18 @@ class BADIPagesCreatedLinks {
 
       $class = $created
         ? $wgBADIConfig['createdLinkClass']
-        : $uncreated
+        : ($uncreated
           ? $wgBADIConfig['uncreatedLinkClass']
-          : $checking
+          : ($checking
             ? $wgBADIConfig['checkingLinkClass']
-            : $wgBADIConfig['erredLinkClass'];
+            : $wgBADIConfig['erredLinkClass']));
       $styles = $created
         ? $wgBADIConfig['createdLinkInlineStyles']
-        : $uncreated
+        : ($uncreated
           ? $wgBADIConfig['uncreatedLinkInlineStyles']
-          : $checking
+          : ($checking
             ? $wgBADIConfig['checkingLinkInlineStyles']
-            : $wgBADIConfig['erredLinkInlineStyles'];
+            : $wgBADIConfig['erredLinkInlineStyles']));
 
       $siteWithTitle = $uncreated
         ? str_replace_assoc([
