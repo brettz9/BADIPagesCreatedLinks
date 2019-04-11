@@ -334,7 +334,11 @@ make to civilization, if it will only be truly enabled to do so.
 
 ## Immediate to-dos
 
-1. Test caching/queue
+1. Add ability to make exceptions for SQL checks at least in config.
+1. Add a `Special:` page to summarize "missing", "existing", or
+  "checking" links, with orange/blue links leading to the other wikis
+  (and allowing sorting/subsorting by wiki URL or status type, or
+  last-checked timestamp).
 1. Means to recheck links, adding desired links to check to queue
     1. Preferably activatable from admin page and/or a specific
         (category) page itself
