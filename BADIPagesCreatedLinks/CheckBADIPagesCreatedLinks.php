@@ -1,4 +1,7 @@
 <?php
+// For php maintenance/runJobs.php
+// error_reporting( E_ALL );
+// ini_set( 'display_errors', 1 );
 
 require('JobQueuer.php');
 
@@ -40,7 +43,8 @@ class CheckBADIPagesCreatedLinks extends JobQueuer {
 	 */
 	public function run () {
 		// Load data from $this->params and $this->title
-    $wgBADIConfig = $this->params['wgBADIConfig;'];
+    $table = $this->params['table'];
+    $badiConfig = $this->params['badiConfig'];
     $url = $this->params['url'];
     $rowID = $this->params['row_id'];
     $insertCache = $this->params['insertCache'];
@@ -55,15 +59,15 @@ class CheckBADIPagesCreatedLinks extends JobQueuer {
     //  (Wikipedia, though not MediaWiki, disallows HEAD requests
     //  without a user-agent specified)
     stream_context_set_default(
-      isset($wgBADIConfig['stream_context']) &&
-        count($wgBADIConfig['stream_context'])
-        ? $wgBADIConfig['stream_context']
+      isset($badiConfig['stream_context']) &&
+        count($badiConfig['stream_context'])
+        ? $badiConfig['stream_context']
         : [
           'http' => [
             'user_agent' => (
-              isset($wgBADIConfig['user-agent'])
-                ? $wgBADIConfig['user-agent']
-                : wfMessage('user-agent').plain()
+              isset($badiConfig['user-agent'])
+                ? $badiConfig['user-agent']
+                : wfMessage('user-agent')->plain()
             )
           ]
         ]
@@ -74,8 +78,10 @@ class CheckBADIPagesCreatedLinks extends JobQueuer {
     stream_context_set_default($defaultOpts); // Set it back to original value
 
     // Todo: Distinguish codes to add "erred" `remote_status`
-    $oldPageExists = !!($headers['Last-Modified'] ||
-      (strpos($headers[0], '200') !== false));
+    $oldPageExists = !!(
+      (isset($headers['Last-Modified']) && $headers['Last-Modified']) ||
+      (strpos($headers[0], '200') !== false)
+    );
     $createdState = $oldPageExists ? 'existing' : 'missing';
 
     $dbr = wfGetDB(DB_SLAVE);

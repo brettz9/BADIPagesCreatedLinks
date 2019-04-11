@@ -62,12 +62,11 @@ class BADIPagesCreatedLinks {
       if ($res) {
         $row = $res->fetchRow();
       }
-      // var_dump($row);
       if ($row) {
         $updateCache = true;
         $rowID = $row['id'];
-        if ($row['remote_status'] === 'existing' && $wgBADIConfig['cache_existing'] ||
-          $row['remote_status'] !== 'existing' && $wgBADIConfig['cache_nonexisting']
+        if (($row['remote_status'] === 'existing' && $wgBADIConfig['cache_existing']) ||
+          ($row['remote_status'] === 'missing' && $wgBADIConfig['cache_nonexisting'])
         ) {
           $timeout = $row['remote_status'] === 'existing'
             ? $wgBADIConfig['cache_existing_timeout'] // Default: About a year
@@ -97,9 +96,10 @@ class BADIPagesCreatedLinks {
       CheckBADIPagesCreatedLinks::queue([
         // Not sure if global is available during jobs, so saving a
         //   local copy
+        'table' => $table,
         'url' => $url,
         'articleTitle' => $currentPageTitle,
-        'wgBADIConfig' => $wgBADIConfig,
+        'badiConfig' => $wgBADIConfig,
         'insertCache' => $insertCache,
         'updateCache' => $updateCache,
         'row_id' => $rowID,
