@@ -224,6 +224,8 @@ $wgBADIConfig['namespace_whitelist'] = [NS_MAIN];
 $wgBADIConfig['namespace_blacklist'] = [NS_Help];
 ```
 
+### HTTP config
+
 #### `user-agent`
 
 This doesn't need to be changed from the default of
@@ -235,6 +237,8 @@ Wikipedia (but not custom Mediawiki apparently unless so configured).
 
 This option can be used if one needs to change more than the user-agent
 for the HTTP HEAD request.
+
+### Caching config
 
 #### Caching (`no_cache`, `cache_existing`, `cache_nonexisting`, `cache_existing_timeout`, `cache_nonexisting_timeout`)
 
@@ -260,6 +264,23 @@ page was deleted as opposed to a page coming into existence.
 $wgBADIConfig['cache_existing_timeout'] = 31104000; // a year (12 * 30 * 24 * 60 * 60)
 $wgBADIConfig['cache_nonexisting_timeout'] = 2592000; // a month (30 * 24 * 60 * 60)
 ```
+
+### Relevant Mediawiki config
+
+Since [Jobs](https://www.mediawiki.org/wiki/Manual:Job_queue) are used to
+avoid performance bottlenecks with the HTTP requests used to determine page
+existence, you may wish to use some of the built-in Mediawiki config for
+Jobs.
+
+- `$wgRunJobsAsync` - Should probably set to `true` to improve performance.
+- `$wgJobRunRate` - Keep at `1` to ensure job to cache data will be performed,
+  though might experiment with lowering, e.g., to `.01` to only run the job
+  upon a percentage of requests.
+- `$wgUpdateRowsPerJob` - Could change default of `300` to a higher number if
+  demand on server is high with this frequency of operations between jobs.
+- `$wgJobBackoffThrottling` - Our jobs don't specify the number of work items
+  per job ([`workItemCount`](https://doc.wikimedia.org/mediawiki-core/master/php/classJob.html)).
+  Only impacts `maintenance/runJobs.php`, not web request-initiated jobs.
 
 ### Defaulting and i18n
 
