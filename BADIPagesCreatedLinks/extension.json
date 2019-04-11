@@ -36,6 +36,7 @@
   "config": {
     "BADIConfig": {
       "value": {
+        "exclusions_path": "",
         "titles": {},
         "sites": {},
         "sites_editing": {},

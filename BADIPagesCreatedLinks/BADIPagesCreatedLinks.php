@@ -172,12 +172,26 @@ class BADIPagesCreatedLinks {
         // Finally, if none specified at all, use our default
         : [wfMessage('title')->escaped()]);
 
+    $exclusions = [];
+    if ($wgBADIConfig['exclusions_path'] !== '') {
+      $exclusions = json_decode(file_get_contents($wgBADIConfig['exclusions_path']), true);
+    }
+
     $link_items = '';
     foreach ($badi_sites as $i => $badi_site) {
       // If the site is explicitly unspecified for the given language
       //   (or default), ignore it
       if ($badi_site == null) {
         continue;
+      }
+
+      $exclusionValue = null;
+      if (array_key_exists($badi_site, $exclusions) &&
+        array_key_exists($currentPageTitle, $exclusions[$badi_site])) {
+        $exclusionValue = $exclusions[$badi_site][$currentPageTitle];
+        if ($exclusionValue === false) {
+          continue;
+        }
       }
 
       // Let user be able to dynamically determine URL (in this
@@ -197,11 +211,17 @@ class BADIPagesCreatedLinks {
         '{{SITE}}' => $site
       ], $wgBADIConfig['site_and_title_templates']);
 
-      // Might allow defining inline styles for easier
-      // though less ideal configuration
-      $createdState = self::getCreatedStateForSite(
-        $siteWithTitle, $currentPageTitle, $wgBADIConfig
-      );
+      if (isset($exclusionValue) && in_array($exclusionValue, [
+        'existing', 'missing', 'checking', 'erred'
+      ])) {
+        $createdState = $exclusionValue;
+      } else {
+        // Might allow defining inline styles for easier
+        // though less ideal configuration
+        $createdState = self::getCreatedStateForSite(
+          $siteWithTitle, $currentPageTitle, $wgBADIConfig
+        );
+      }
       $created = $createdState === 'existing';
       $uncreated = $createdState === 'missing';
       $checking = $createdState === 'checking';
