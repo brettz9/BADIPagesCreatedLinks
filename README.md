@@ -242,12 +242,16 @@ for the HTTP HEAD request.
 
 #### Caching (`no_cache`, `cache_existing`, `cache_nonexisting`, `cache_existing_timeout`, `cache_nonexisting_timeout`)
 
-Configuration exists to allow caching. Caching is on by default and should
-remain on, but if needed for development testing, you may disable as follows:
+Caching is on by default and should remain on, but if needed for
+development testing, you may disable as follows:
 
 ```php
 $wgBADIConfig['no_cache'] = true;
 ```
+
+However, please note that this currently does not perform any requests,
+but merely adds an `"existing"` class to the link as though the
+targeted site exists. No checking is performed.
 
 Also for debugging only, you may wish to set either of this settings to `false`:
 ```php
