@@ -346,7 +346,8 @@ make to civilization, if it will only be truly enabled to do so.
 
 ## Immediate to-dos
 
-1. Document config on whether to use toolbox or footer.
+1. Make per-site config on classes so can hide for one and show orange
+  for others?
 1. Add a `Special:` page for listing/editing exceptions or fixed
   link types (e.g., adding `Main_Page` to "existing").
 1. Add a `Special:` page to summarize "missing", "existing", or
