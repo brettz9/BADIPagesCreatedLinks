@@ -41,13 +41,15 @@
         "sites_editing": {},
 
         "external_intro": {},
-        "external_sites_templates": "\n<li>{{LOCALIZED_INTRO}}\n\t<ul>\n\t\t{{LINK_ITEMS}}\n\t</ul>\n</li>\n",
+        "external_sites_templates": "\n<li><div class=\"portal\"><h3>{{LOCALIZED_INTRO}}\n\t<ul>\n\t\t<div class=\"body\">{{LINK_ITEMS}}</div>\n\t</ul></div>\n</li>\n",
 
         "external_site_templates": "<li><a class=\"{{CLASS}}\" {{STYLES}} href=\"{{LOCALIZED_LINK}}\">{{LOCALIZED_TITLE}}</a></li>\n",
         "createdLinkInlineStyles": "",
         "uncreatedLinkInlineStyles": "",
         "createdLinkClass": "external",
         "uncreatedLinkClass": "new",
+        "checkingLinkClass": "checking",
+        "erredLinkClass": "erred",
 
         "site_and_title_templates": "{{SITE}}{{CURRENT_PAGE_TITLE}}",
         "site_editing_templates": "{{SITE_EDITING}}{{CURRENT_PAGE_TITLE}}&action=edit",
