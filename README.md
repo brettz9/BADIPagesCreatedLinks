@@ -282,6 +282,11 @@ Jobs.
   per job ([`workItemCount`](https://doc.wikimedia.org/mediawiki-core/master/php/classJob.html)).
   Only impacts `maintenance/runJobs.php`, not web request-initiated jobs.
 
+Note, for debugging, can see number of jobs by adding the following to one's
+API URL (`query.statistics.jobs`):
+
+`api.php?action=query&meta=siteinfo&siprop=statistics&format=jsonfm`
+
 ### Defaulting and i18n
 
 As evident above, most of the configuration will be provided by the user
