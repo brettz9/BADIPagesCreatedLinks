@@ -12,6 +12,12 @@ $wgMainCacheType = CACHE_NONE;
 $wgCacheDirectory = false;
 */
 
+class MockOut {
+  public function addHTML ($str) {
+      echo $str;
+  }
+}
+
 /**
  *
  * @param array $replace
@@ -121,12 +127,33 @@ class BADIPagesCreatedLinks {
    * @param array $toolbox Passed by reference
    * @return boolean Whether any links were added
    */
-  public static function addPageCreatedLinks (BaseTemplate $baseTemplate, array &$toolbox) {
+  // Hook type: BaseTemplateToolbox
+  public static function addPageCreatedLinksToolbox (BaseTemplate $baseTemplate, array &$toolbox) {
+    global $wgBADIConfig;
+    if (!$wgBADIConfig['use_toolbox']) {
+      return false;
+    }
+    $currentPageTitleObj = $baseTemplate->getSkin()->getTitle();
+
+    $out = new MockOut();
+    return self::addPageCreatedLinks('toolbox', $currentPageTitleObj, $out);
+  }
+  // Hook type: ArticleViewFooter
+  public static function addPageCreatedLinksFooter ($article) {
+    global $wgBADIConfig;
+    if (!$wgBADIConfig['use_footer']) {
+      return false;
+    }
+    $out = $article->getContext()->getOutput();
+    $currentPageTitleObj = $out->getTitle();
+    $out = $article->getContext()->getOutput();
+    return self::addPageCreatedLinks('footer', $currentPageTitleObj, $out);
+  }
+  public static function addPageCreatedLinks ($type, $currentPageTitleObj, $out) {
     // GET LOCALE MESSAGES
     global $wgLanguageCode, // Ok as not deprecated
       $wgBADIConfig; // Ok as still recommended way
 
-    $currentPageTitleObj = $baseTemplate->getSkin()->getTitle();
     // The namespace-prefixed, underscored title of the current article
     $currentPageTitle = $currentPageTitleObj->getPrefixedDBKey();
     $titleNamespace = $currentPageTitleObj->getNamespace();
@@ -254,7 +281,7 @@ class BADIPagesCreatedLinks {
         '{{CLASS}}' => $class,
         '{{LOCALIZED_LINK}}' => $siteWithTitle,
         '{{LOCALIZED_TITLE}}' => $siteTitle
-      ], $wgBADIConfig['external_site_templates']);
+      ], $wgBADIConfig['external_site_templates_' . $type]);
     }
 
     if ($link_items === '') {
@@ -264,7 +291,7 @@ class BADIPagesCreatedLinks {
     // Todo: Any other way to write than directly using `echo`?
     //    Other extensions appear to set a property on `$toolbox`;
     //    for raw HTML, we may need to do this way
-    echo str_replace_assoc([
+    $out->addHTML(str_replace_assoc([
       '{{LOCALIZED_INTRO}}' => isset(
           $wgBADIConfig['external_intro'][$wgLanguageCode]
         )
@@ -273,7 +300,7 @@ class BADIPagesCreatedLinks {
               $wgBADIConfig['external_intro']['default'] :
               wfMessage('external-pages-w-same-title')->plain()),
       '{{LINK_ITEMS}}' => $link_items
-    ], $wgBADIConfig['external_sites_templates']);
+    ], $wgBADIConfig['external_sites_templates_' . $type]));
 
     return true;
   }

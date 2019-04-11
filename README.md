@@ -2,9 +2,10 @@
 
 The BADI Pages Created Links extension for Mediawiki
 ([Mediawiki page](https://www.mediawiki.org/wiki/Extension:BADI_Pages_Created_Links))
-allows display of links in one's Mediawiki toolbox area which lead to
-other wiki or wiki-like sites whereby links will be colored differently
-depending on whether the page there has been created yet or not.
+allows display of links in one's Mediawiki article footer and/or toolbox
+area which lead to other wiki or wiki-like sites whereby links will
+be colored differently depending on whether the page there has
+been created yet or not.
 
 The status of whether it was created yet or not is determined by
 `Last-Modified` on `HTTP 200` `HEAD` requests.
@@ -94,6 +95,13 @@ $wgBADIConfig['sites_editing']['default'] = [
 An item in a "sites" language array can be set to `NULL` if a link should
 not be generated for that particular language.
 
+### Footer vs. Toolbox
+
+#### `use_toolbox`/`use_footer`
+
+These boolean configs can be changed from their defaults (of `true`) to
+hide either one.
+
 ### Markup config
 
 Although it is not necessary to change the default values, this extension
@@ -110,13 +118,13 @@ Language keyed array for message to introduce external links:
 $wgBADIConfig['external_intro']['default'] = 'External pages with same title: ';
 ```
 
-#### `external_sites_templates`
+#### `external_sites_templates_footer`/`external_sites_templates_toolbox`
 
 The template for configuring the entire block that will be added
-as a whole is "external_sites_templates:
+as a whole to the article footer is "external_sites_templates_footer":
 
 ```php
-$wgBADIConfig['external_sites_templates'] = <<<HERE
+$wgBADIConfig['external_sites_templates_footer'] = <<<HERE
     <li>{{LOCALIZED_INTRO}}
         <ul>
             {{LINK_ITEMS}}
@@ -129,12 +137,16 @@ It allows two variables, the first being `{{LOCALIZED_INTRO}}` which is
 merely the introductory text for the links (from `external_intro`) and
 `{{LINK_ITEMS}}` which are the individual line items containing the links.
 
-#### `external_site_templates` (and `createdLinkInlineStyles`/`uncreatedLinkInlineStyles`/`checkingLinkInlineStyles`/`erredLinkInlineStyles` and `createdLinkClass`/`uncreatedLinkClass`/`checkingLinkClass`/`erredLinkClass`)
+`external_sites_templates_toolbox` behaves in the same manner except
+it is used for generating the toolbox.
 
-Each individual line item also has a template, "external_site_templates":
+#### `external_site_templates_footer`/`external_site_templates_toolbox` (and `createdLinkInlineStyles`/`uncreatedLinkInlineStyles`/`checkingLinkInlineStyles`/`erredLinkInlineStyles` and `createdLinkClass`/`uncreatedLinkClass`/`checkingLinkClass`/`erredLinkClass`)
+
+Each individual line item also has a template, "external_site_templates_footer"
+(or for the toolbox, it is "external_site_templates_toolbox"):
 
 ```php
-$wgBADIConfig['external_site_templates'] =
+$wgBADIConfig['external_site_templates_footer'] =
     '<li><a class="{{CLASS}}" {{STYLES}} href="{{LOCALIZED_LINK}}">{{LOCALIZED_TITLE}}</a></li>'."\n";
 ```
 
@@ -334,7 +346,9 @@ make to civilization, if it will only be truly enabled to do so.
 
 ## Immediate to-dos
 
-1. Add ability to make exceptions for SQL checks at least in config.
+1. Document config on whether to use toolbox or footer.
+1. Add a `Special:` page for listing/editing exceptions or fixed
+  link types (e.g., adding `Main_Page` to "existing").
 1. Add a `Special:` page to summarize "missing", "existing", or
   "checking" links, with orange/blue links leading to the other wikis
   (and allowing sorting/subsorting by wiki URL or status type, or

@@ -30,21 +30,26 @@
       "CheckBADIPagesCreatedLinks": "CheckBADIPagesCreatedLinks.php"
   },
   "Hooks": {
-    "BaseTemplateToolbox": "BADIPagesCreatedLinks::addPageCreatedLinks",
+    "BaseTemplateToolbox": "BADIPagesCreatedLinks::addPageCreatedLinksToolbox",
+    "ArticleViewFooter": "BADIPagesCreatedLinks::addPageCreatedLinksFooter",
     "LoadExtensionSchemaUpdates": "BADIPagesCreatedLinks::onLoadExtensionSchemaUpdates"
   },
   "config": {
     "BADIConfig": {
       "value": {
+        "use_footer": true,
+        "use_toolbox": true,
         "exclusions_path": "",
         "titles": {},
         "sites": {},
         "sites_editing": {},
 
         "external_intro": {},
-        "external_sites_templates": "\n<li><div class=\"portal\"><h3>{{LOCALIZED_INTRO}}\n\t<ul>\n\t\t<div class=\"body\">{{LINK_ITEMS}}</div>\n\t</ul></div>\n</li>\n",
+        "external_sites_templates_footer": "<div class=\"portal\"><h3>{{LOCALIZED_INTRO}}\n\t<ul>\n\t\t<div class=\"body\">{{LINK_ITEMS}}</div>\n\t</ul></div>\n",
+        "external_site_templates_footer": "<li><a class=\"{{CLASS}}\" {{STYLES}} href=\"{{LOCALIZED_LINK}}\">{{LOCALIZED_TITLE}}</a></li>\n",
 
-        "external_site_templates": "<li><a class=\"{{CLASS}}\" {{STYLES}} href=\"{{LOCALIZED_LINK}}\">{{LOCALIZED_TITLE}}</a></li>\n",
+        "external_sites_templates_toolbox": "\n<li><div class=\"portal\"><h3>{{LOCALIZED_INTRO}}\n\t<ul>\n\t\t<div class=\"body\">{{LINK_ITEMS}}</div>\n\t</ul></div>\n</li>\n",
+        "external_site_templates_toolbox": "<li><a class=\"{{CLASS}}\" {{STYLES}} href=\"{{LOCALIZED_LINK}}\">{{LOCALIZED_TITLE}}</a></li>\n",
         "createdLinkInlineStyles": "",
         "uncreatedLinkInlineStyles": "",
         "createdLinkClass": "external",
