@@ -286,6 +286,19 @@ $wgBADIConfig['cache_existing_timeout'] = 31104000; // a year (12 * 30 * 24 * 60
 $wgBADIConfig['cache_nonexisting_timeout'] = 2592000; // a month (30 * 24 * 60 * 60)
 ```
 
+### `exclusions_path`
+
+`exclusions_path` should point to a JSON file, by convention,
+`badi_exclusions.json`. This file has an object keyed by site (as used in
+`sites` config) whose value is another object, keyed by page title (with
+underscores, etc.) whose value is either `false` (in which case the
+site-page combination will not be shown at all) or a string set to one
+of the allowed link statuses ('existing', 'missing', 'checking', 'erred')
+which will treat the site as though its HTTP status had been found to be
+thus. This is useful for the likes of the site's `Main_Page`, e.g., to treat
+a particular site's as "existing" (if known to be such) so as to avoid the
+need for database queries to check the status.
+
 ### Relevant Mediawiki config
 
 Since [Jobs](https://www.mediawiki.org/wiki/Manual:Job_queue) are used to
