@@ -71,6 +71,11 @@ class BADIPagesCreatedLinks {
       if ($row) {
         $updateCache = true;
         $rowID = $row['id'];
+        if ($row['remote_status'] === 'checking') {
+          // Don't add another job if already checking; if stuck,
+          //   should run manually
+          return 'checking';
+        }
         if (($row['remote_status'] === 'existing' && $wgBADIConfig['cache_existing']) ||
           ($row['remote_status'] === 'missing' && $wgBADIConfig['cache_nonexisting'])
         ) {
@@ -254,6 +259,8 @@ class BADIPagesCreatedLinks {
       $checking = $createdState === 'checking';
       // $erred = $createdState === 'erred';
 
+      // var_dump($createdState);
+
       $class = $created
         ? $wgBADIConfig['createdLinkClass']
         : ($uncreated
@@ -277,7 +284,7 @@ class BADIPagesCreatedLinks {
         : $siteWithTitle;
 
       $link_items .= str_replace_assoc([
-        '{{STYLES}}' => isset($styles) && $styles ? 'style="'.($styles).'"' : '',
+        '{{STYLES}}' => (!empty($styles) ? 'style="'.($styles).'"' : ''),
         '{{CLASS}}' => $class,
         '{{LOCALIZED_LINK}}' => $siteWithTitle,
         '{{LOCALIZED_TITLE}}' => $siteTitle

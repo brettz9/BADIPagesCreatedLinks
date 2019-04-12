@@ -50,11 +50,13 @@
 
         "external_sites_templates_toolbox": "\n<li><div class=\"portal\"><h3>{{LOCALIZED_INTRO}}\n\t<ul>\n\t\t<div class=\"body\">{{LINK_ITEMS}}</div>\n\t</ul></div>\n</li>\n",
         "external_site_templates_toolbox": "<li><a class=\"{{CLASS}}\" {{STYLES}} href=\"{{LOCALIZED_LINK}}\">{{LOCALIZED_TITLE}}</a></li>\n",
+
         "createdLinkInlineStyles": "",
         "uncreatedLinkInlineStyles": "",
-        "createdLinkClass": "external",
         "checkingLinkInlineStyles": "",
         "erredLinkInlineStyles": "",
+
+        "createdLinkClass": "external",
         "uncreatedLinkClass": "new",
         "checkingLinkClass": "checking",
         "erredLinkClass": "erred",
