@@ -381,8 +381,6 @@ make to civilization, if it will only be truly enabled to do so.
         1. all in the entire wiki, not just the cache table
 1. Update <https://www.mediawiki.org/wiki/Extension:BADI_Pages_Created_Links>
     when more functional, if necessary forwarding to `BADIPagesCreatedLinks`.
-1. Add to <https://www.mediawiki.org/wiki/Database_field_prefixes>
-    (to avoid future name clashes)
 
 ## Medium priority to-dos
 
