@@ -216,6 +216,14 @@ class BADIPagesCreatedLinks {
         continue;
       }
 
+      // Hack to allow links on normal pages to link to category pages
+      //   without breaking links from actual category pages;
+      //   instead have user implement generic replacer callback?
+      if ($titleNamespace === NS_CATEGORY) {
+        $badi_site = preg_replace('@Category:$@', '', $badi_site);
+        $badi_sites_editing[$i] = preg_replace('@Category:$@', '', $badi_sites_editing[$i]);
+      }
+
       $exclusionValue = null;
       if (array_key_exists($badi_site, $exclusions) &&
         array_key_exists($currentPageTitle, $exclusions[$badi_site])) {
