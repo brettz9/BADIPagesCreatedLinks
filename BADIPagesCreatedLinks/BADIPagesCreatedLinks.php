@@ -163,8 +163,7 @@ class BADIPagesCreatedLinks {
     $currentPageTitle = $currentPageTitleObj->getPrefixedDBKey();
     $titleNamespace = $currentPageTitleObj->getNamespace();
 
-    if (isset($wgBADIConfig['no_namespaces']) &&
-      $wgBADIConfig['no_namespaces'] &&
+    if ($wgBADIConfig['no_namespaces'] &&
       $titleNamespace !== NS_MAIN
     ) {
       return false;
