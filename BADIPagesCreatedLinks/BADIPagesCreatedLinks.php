@@ -12,7 +12,15 @@ $wgMainCacheType = CACHE_NONE;
 $wgCacheDirectory = false;
 */
 
+/**
+ * A Mock class for `$out` (as from `$article->getContext()->getOutput()`)
+ *   which can be used in the Toolbox
+ */
 class MockOut {
+  /**
+   *
+   * @param string $str String to add
+   */
   public function addHTML ($str) {
       echo $str;
   }
@@ -28,6 +36,11 @@ function str_replace_assoc (array $replace, $subject) {
    return str_replace(array_keys($replace), array_values($replace), $subject);
 }
 
+/**
+ *
+ * @param integer $time
+ * @returns string The SQL-compatible timestamp formatted string
+ */
 function phpTimeToSQLTimestamp ($time) {
   return date('Y-m-d H:i:s', $time); // substr($time, 0, -3));
 }
@@ -123,16 +136,11 @@ class BADIPagesCreatedLinks {
   }
   /**
    * Hook (`BaseTemplateToolbox`) for starting function after table
-   * creation.
-   * Adds links to the Toolbox according to a user-configurable and
-   * localizable list of links and titles, and styles links differently
-   * depending on whether the link has been created at the target site
-   * yet or not
+   *   creation. See `addPageCreatedLinks`.
    * @param BaseTemplate $baseTemplate
    * @param array $toolbox Passed by reference
    * @return boolean Whether any links were added
    */
-  // Hook type: BaseTemplateToolbox
   public static function addPageCreatedLinksToolbox (BaseTemplate $baseTemplate, array &$toolbox) {
     global $wgBADIConfig;
     if (!$wgBADIConfig['use_toolbox']) {
@@ -143,7 +151,12 @@ class BADIPagesCreatedLinks {
     $out = new MockOut();
     return self::addPageCreatedLinks('toolbox', $currentPageTitleObj, $out);
   }
-  // Hook type: ArticleViewFooter
+  /**
+   * Hook (`ArticleViewFooter`) for starting function after table
+   *   creation. See `addPageCreatedLinks`.
+   * @param array $article
+   * @return boolean Whether any links were added
+   */
   public static function addPageCreatedLinksFooter ($article) {
     global $wgBADIConfig;
     if (!$wgBADIConfig['use_footer']) {
@@ -154,6 +167,15 @@ class BADIPagesCreatedLinks {
     $out = $article->getContext()->getOutput();
     return self::addPageCreatedLinks('footer', $currentPageTitleObj, $out);
   }
+  /**
+   * Adds links to the article footer according to a user-configurable and
+   * localizable list of links and titles, and styles links differently
+   * depending on whether the link has been created at the target site
+   * yet or not
+   * @param "toolbox"|"footer" $type
+   * @param object $currentPageTitleObj
+   * @param object $out
+   */
   public static function addPageCreatedLinks ($type, $currentPageTitleObj, $out) {
     // GET LOCALE MESSAGES
     global $wgLanguageCode, // Ok as not deprecated
