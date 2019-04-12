@@ -200,6 +200,11 @@ language and/or site.
 
 `{{LOCALIZED_TITLE}}` will come from `$wgBADIConfig['titles']`
 
+#### `createdNoFollow`, `uncreatedNoFollow`, `checkingNoFollow`, `erredNoFollow`
+
+Whether to add `rel="nofollow"` to links. All default to `true` except
+`createdNoFollow` which is `false`.
+
 #### `site_and_title_templates`
 
 The variable `{{SITE}}` will be replaced by the base URL for an already created

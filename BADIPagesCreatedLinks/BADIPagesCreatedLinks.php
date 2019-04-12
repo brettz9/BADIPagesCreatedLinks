@@ -275,6 +275,13 @@ class BADIPagesCreatedLinks {
           : ($checking
             ? $wgBADIConfig['checkingLinkInlineStyles']
             : $wgBADIConfig['erredLinkInlineStyles']));
+      $noFollow = $created
+        ? $wgBADIConfig['createdNoFollow']
+        : ($uncreated
+          ? $wgBADIConfig['uncreatedNoFollow']
+          : ($checking
+            ? $wgBADIConfig['checkingNoFollow']
+            : $wgBADIConfig['erredNoFollow']));
 
       $siteWithTitle = $uncreated
         ? str_replace_assoc([
@@ -286,6 +293,7 @@ class BADIPagesCreatedLinks {
       $link_items .= str_replace_assoc([
         '{{STYLES}}' => (!empty($styles) ? 'style="'.($styles).'"' : ''),
         '{{CLASS}}' => $class,
+        '{{NO_FOLLOW}}' => ($noFollow ? 'rel="nofollow"' : ''),
         '{{LOCALIZED_LINK}}' => $siteWithTitle,
         '{{LOCALIZED_TITLE}}' => $siteTitle
       ], $wgBADIConfig['external_site_templates_' . $type]);
