@@ -364,17 +364,9 @@ make to civilization, if it will only be truly enabled to do so.
 
 ## Immediate to-dos
 
-1. Make per-site config on classes so can hide for one and show orange
-  for others?
 1. Make per-site config to accept callable function/method which accepts
   the site and title as args and can reject or change state, etc.
   in a programmatic way
-1. Add a `Special:` page for listing/editing exceptions or fixed
-  link types (e.g., adding `Main_Page` to "existing").
-1. Add a `Special:` page to summarize "missing", "existing", or
-  "checking" links, with orange/blue links leading to the other wikis
-  (and allowing sorting/subsorting by wiki URL or status type, or
-  last-checked timestamp).
 1. Means to recheck links, adding desired links to check to queue
     1. Preferably activatable from admin page and/or a specific
         (category) page itself
@@ -382,6 +374,14 @@ make to civilization, if it will only be truly enabled to do so.
         1. orange
         1. blue (which may have since been deleted)
         1. all in the entire wiki, not just the cache table
+1. Make per-site config on classes so can hide for one and show orange
+  for others?
+1. Add a `Special:` page for listing/editing exceptions or fixed
+  link types (e.g., adding `Main_Page` to "existing").
+1. Add a `Special:` page to summarize "missing", "existing", or
+  "checking" links, with orange/blue links leading to the other wikis
+  (and allowing sorting/subsorting by wiki URL or status type, or
+  last-checked timestamp).
 
 ## Medium priority to-dos
 
