@@ -1,6 +1,6 @@
 # BADIPagesCreatedLinks CHANGES
 
-## 2.1.0
+## 2.1.0 (REL1_31)
 
 - Enhancement: Add `force_check` feature (with `prevent_force_check` config)
 
