@@ -96,7 +96,12 @@ class BADIPagesCreatedLinks {
             ? $wgBADIConfig['cache_existing_timeout'] // Default: About a year
             : $wgBADIConfig['cache_nonexisting_timeout']; // Default: About a month
 
-          if ($currTime <= (strtotime($row['last_checked']) + $timeout)) {
+          if (
+            ($wgBADIConfig['prevent_force_check'] ||
+              !isset($_GET['force_check']) ||
+              !$_GET['force_check']
+            ) && $currTime <= (strtotime($row['last_checked']) + $timeout)
+          ) {
             return $row['remote_status'];
           }
         }

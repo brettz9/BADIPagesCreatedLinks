@@ -257,7 +257,7 @@ for the HTTP HEAD request.
 
 ### Caching config
 
-#### Caching (`no_cache`, `cache_existing`, `cache_nonexisting`, `cache_existing_timeout`, `cache_nonexisting_timeout`)
+#### Caching (`no_cache`, `cache_existing`, `cache_nonexisting`, `cache_existing_timeout`, `cache_nonexisting_timeout`, `prevent_force_check`)
 
 Caching is on by default and should remain on, but if needed for
 development testing, you may disable as follows:
@@ -284,6 +284,15 @@ page was deleted as opposed to a page coming into existence.
 ```php
 $wgBADIConfig['cache_existing_timeout'] = 31104000; // a year (12 * 30 * 24 * 60 * 60)
 $wgBADIConfig['cache_nonexisting_timeout'] = 2592000; // a month (30 * 24 * 60 * 60)
+```
+
+By default, the parameter `&force_check=1` may be added to URLs to
+force checks on links whose status which may not yet have expired (this
+will not force checks on excluded sites, etc., however).
+To disable this ability to check via URL, set:
+
+```php
+$wgBADIConfig['prevent_force_check'] = true;
 ```
 
 ### `exclusions_path`

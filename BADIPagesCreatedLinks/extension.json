@@ -39,6 +39,7 @@
       "value": {
         "use_footer": true,
         "use_toolbox": true,
+        "prevent_force_check": false,
         "exclusions_path": "",
         "titles": {},
         "sites": {},
