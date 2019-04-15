@@ -56,29 +56,29 @@ They must all be the same length.
 "default" can be used in place of a language to indicate the default values
 and patterns.
 
-For example, the following allows us to link to Wikipedia and Bahaikipedia
+For example, the following allows us to link to Wikipedia and Bahaipedia
 while allowing a different pattern for English, since "en." is not used
 in the URL:
 
 ```php
-$wgBADIConfig['titles']['default'] = ['Wikipedia', 'Bahaikipedia'];
+$wgBADIConfig['titles']['default'] = ['Wikipedia', 'Bahaipedia'];
 $wgBADIConfig['sites']['default'] = [
     'https://{{LANGUAGE}}.wikipedia.org/wiki/',
-    'https://{{LANGUAGE}}.bahaikipedia.org/'
+    'https://{{LANGUAGE}}.bahaipedia.org/'
 ];
 $wgBADIConfig['sites_editing']['default'] = [
     'https://{{LANGUAGE}}.wikipedia.org/w/index.php?title=',
-    'https://{{LANGUAGE}}.bahaikipedia.org/index.php?title='
+    'https://{{LANGUAGE}}.bahaipedia.org/index.php?title='
 ];
 
-$wgBADIConfig['titles']['en'] = ['Wikipedia', 'Bahaikipedia'];
+$wgBADIConfig['titles']['en'] = ['Wikipedia', 'Bahaipedia'];
 $wgBADIConfig['sites']['en'] = [
     'https://{{LANGUAGE}}.wikipedia.org/wiki/',
-    'https://bahaikipedia.org/'
+    'https://bahaipedia.org/'
 ];
 $wgBADIConfig['sites_editing']['en'] = [
     'https://{{LANGUAGE}}.wikipedia.org/w/index.php?title=',
-    'https://bahaikipedia.org/index.php?title='
+    'https://bahaipedia.org/index.php?title='
 ];
 ```
 
@@ -346,7 +346,7 @@ write any localizations and we may include them).
 
 ## Dedication
 
-This extension is dedicated to our Baha'i friends in Iran who, without
+This extension is dedicated to our Bahá'í friends in Iran who, without
 responding in kind, but on the contrary, who persevere in demonstrating their
 loyalty and services to their communities and country, despite the
 government-sponsored persecution so insidiously leagued against them
@@ -355,7 +355,7 @@ and businesses and other abuses or harassment, even of poor school children).
 No doubt Iran as a whole will return to its prior glories as soon as it
 stops its patently false propaganda, trumped up charges and imprisonments,
 and becomes concerned with elevating the status of all of its citizens,
-whether women, ethnic minorities, or Baha'is (the largest independent
+whether women, ethnic minorities, or Bahá'ís (the largest independent
 religious minority in the country). Civilized countries do not come anywhere
 close to doing things like denying education to its own citizens, citizens
 who are moreover loyal to its authority! Is there any excuse for such
